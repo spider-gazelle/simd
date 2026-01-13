@@ -1,0 +1,16 @@
+name: simd
+version: 1.0.0
+
+development_dependencies:
+  ameba:
+    github: veelenga/ameba
+
+# compile target
+targets:
+  benchmark:
+    main: examples/benchmark.cr
+
+authors:
+  - Stephen von Takach <steve@place.technology>
+
+license: MIT

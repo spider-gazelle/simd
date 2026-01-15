@@ -1,0 +1,1591 @@
+Vector size: 4096
+Implementations: Scalar, SSE2, SSE41, AVX2, AVX512
+
+f32/abs	dst = abs(a)
+Scalar   2.29M (435.82ns) (± 0.34%)  0.0B/op   2.81× slower
+  SSE2   2.28M (437.83ns) (± 0.84%)  0.0B/op   2.83× slower
+ SSE41   2.30M (434.68ns) (± 0.37%)  0.0B/op   2.81× slower
+  AVX2   2.36M (423.67ns) (± 0.10%)  0.0B/op   2.73× slower
+AVX512   6.45M (154.94ns) (± 0.21%)  0.0B/op        fastest
+
+f32/add	dst = a + b
+Scalar 966.16k (  1.04µs) (± 0.15%)  0.0B/op   7.11× slower
+  SSE2 961.70k (  1.04µs) (± 0.39%)  0.0B/op   7.14× slower
+ SSE41 968.05k (  1.03µs) (± 0.18%)  0.0B/op   7.10× slower
+  AVX2   3.73M (268.31ns) (± 1.09%)  0.0B/op   1.84× slower
+AVX512   6.87M (145.55ns) (± 1.22%)  0.0B/op        fastest
+
+f32/axpby	dst = alpha*a + beta*b
+Scalar 576.09k (  1.74µs) (± 0.00%)  0.0B/op   5.69× slower
+  SSE2 578.91k (  1.73µs) (± 0.00%)  0.0B/op   5.67× slower
+ SSE41 571.56k (  1.75µs) (± 0.00%)  0.0B/op   5.74× slower
+  AVX2   3.28M (304.84ns) (± 1.01%)  0.0B/op        fastest
+AVX512   3.12M (320.08ns) (± 1.89%)  0.0B/op   1.05× slower
+
+f32/ceil	dst = ceil(a)
+Scalar 146.71k (  6.82µs) (± 1.09%)  0.0B/op  69.53× slower
+  SSE2 148.27k (  6.74µs) (± 0.33%)  0.0B/op  68.80× slower
+ SSE41 971.66k (  1.03µs) (± 0.25%)  0.0B/op  10.50× slower
+  AVX2   5.72M (174.92ns) (± 1.80%)  0.0B/op   1.78× slower
+AVX512  10.20M ( 98.03ns) (± 2.83%)  0.0B/op        fastest
+
+f32/clamp	dst = clamp(a, lo, hi)
+Scalar   1.15M (873.08ns) (± 0.21%)  0.0B/op   3.65× slower
+  SSE2   1.15M (869.79ns) (± 0.17%)  0.0B/op   3.64× slower
+ SSE41   1.15M (870.18ns) (± 0.12%)  0.0B/op   3.64× slower
+  AVX2   4.05M (246.61ns) (± 0.52%)  0.0B/op   1.03× slower
+AVX512   4.18M (239.16ns) (± 0.36%)  0.0B/op        fastest
+
+f32/cmp_eq	mask = a == b
+Scalar 602.93k (  1.66µs) (± 0.25%)  0.0B/op   1.44× slower
+  SSE2 605.97k (  1.65µs) (± 0.66%)  0.0B/op   1.44× slower
+ SSE41 589.90k (  1.70µs) (± 1.37%)  0.0B/op   1.48× slower
+  AVX2 589.40k (  1.70µs) (± 2.92%)  0.0B/op   1.48× slower
+AVX512 870.58k (  1.15µs) (± 1.86%)  0.0B/op        fastest
+
+f32/cmp_ge	mask = a >= b
+Scalar 592.07k (  1.69µs) (± 0.00%)  0.0B/op   1.52× slower
+  SSE2 597.19k (  1.67µs) (± 0.00%)  0.0B/op   1.51× slower
+ SSE41 596.66k (  1.68µs) (± 0.00%)  0.0B/op   1.51× slower
+  AVX2 601.29k (  1.66µs) (± 0.00%)  0.0B/op   1.50× slower
+AVX512 899.87k (  1.11µs) (± 2.81%)  0.0B/op        fastest
+
+f32/cmp_gt_mask	mask = a > b
+Scalar 600.02k (  1.67µs) (± 0.00%)  0.0B/op   1.51× slower
+  SSE2 601.94k (  1.66µs) (± 0.00%)  0.0B/op   1.50× slower
+ SSE41 602.56k (  1.66µs) (± 0.00%)  0.0B/op   1.50× slower
+  AVX2 615.77k (  1.62µs) (± 1.49%)  0.0B/op   1.47× slower
+AVX512 903.64k (  1.11µs) (± 0.93%)  0.0B/op        fastest
+
+f32/cmp_le	mask = a <= b
+Scalar 597.26k (  1.67µs) (± 0.20%)  0.0B/op   1.51× slower
+  SSE2 594.73k (  1.68µs) (± 0.62%)  0.0B/op   1.52× slower
+ SSE41 600.08k (  1.67µs) (± 0.30%)  0.0B/op   1.50× slower
+  AVX2 603.95k (  1.66µs) (± 0.22%)  0.0B/op   1.49× slower
+AVX512 901.58k (  1.11µs) (± 0.28%)  0.0B/op        fastest
+
+f32/cmp_lt	mask = a < b
+Scalar 595.61k (  1.68µs) (± 0.00%)  0.0B/op   1.51× slower
+  SSE2 601.37k (  1.66µs) (± 0.00%)  0.0B/op   1.49× slower
+ SSE41 598.63k (  1.67µs) (± 0.00%)  0.0B/op   1.50× slower
+  AVX2 618.57k (  1.62µs) (± 0.40%)  0.0B/op   1.45× slower
+AVX512 896.55k (  1.12µs) (± 0.13%)  0.0B/op        fastest
+
+f32/cmp_ne	mask = a != b
+Scalar 601.72k (  1.66µs) (± 0.56%)  0.0B/op   1.48× slower
+  SSE2 602.11k (  1.66µs) (± 0.37%)  0.0B/op   1.48× slower
+ SSE41 603.07k (  1.66µs) (± 0.39%)  0.0B/op   1.48× slower
+  AVX2 620.81k (  1.61µs) (± 0.97%)  0.0B/op   1.44× slower
+AVX512 893.30k (  1.12µs) (± 0.72%)  0.0B/op        fastest
+
+f32/convert_f64	Float64 -> Float32
+Scalar 197.66k (  5.06µs) (± 0.06%)  0.0B/op  25.17× slower
+  SSE2 481.47k (  2.08µs) (± 0.24%)  0.0B/op  10.33× slower
+ SSE41 479.25k (  2.09µs) (± 0.17%)  0.0B/op  10.38× slower
+  AVX2   2.78M (359.33ns) (± 0.83%)  0.0B/op   1.79× slower
+AVX512   4.98M (200.98ns) (± 0.54%)  0.0B/op        fastest
+
+f32/convert_i16	Int16 -> Float32
+Scalar   1.01M (995.00ns) (± 0.24%)  0.0B/op   6.53× slower
+  SSE2   1.01M (987.75ns) (± 0.01%)  0.0B/op   6.48× slower
+ SSE41   1.01M (992.36ns) (± 0.48%)  0.0B/op   6.51× slower
+  AVX2   3.54M (282.81ns) (± 1.03%)  0.0B/op   1.86× slower
+AVX512   6.56M (152.37ns) (± 2.05%)  0.0B/op        fastest
+
+f32/convert_u8_scale	UInt8 -> Float32 (scale)
+Scalar 739.86k (  1.35µs) (± 0.51%)  0.0B/op   8.76× slower
+  SSE2 739.97k (  1.35µs) (± 0.00%)  0.0B/op   8.76× slower
+ SSE41 740.11k (  1.35µs) (± 0.00%)  0.0B/op   8.76× slower
+  AVX2   3.95M (253.10ns) (± 0.68%)  0.0B/op   1.64× slower
+AVX512   6.48M (154.21ns) (± 1.41%)  0.0B/op        fastest
+
+f32/div	dst = a / b
+Scalar 402.99k (  2.48µs) (± 0.11%)  0.0B/op   8.58× slower
+  SSE2 405.18k (  2.47µs) (± 0.16%)  0.0B/op   8.53× slower
+ SSE41 405.93k (  2.46µs) (± 0.06%)  0.0B/op   8.52× slower
+  AVX2   3.46M (289.24ns) (± 0.73%)  0.0B/op        fastest
+AVX512   3.18M (314.73ns) (± 0.33%)  0.0B/op   1.09× slower
+
+f32/dot	dot(a, b)
+Scalar 214.73k (  4.66µs) (± 0.23%)  0.0B/op   6.35× slower
+  SSE2 340.48k (  2.94µs) (± 0.20%)  0.0B/op   4.00× slower
+ SSE41 340.66k (  2.94µs) (± 0.18%)  0.0B/op   4.00× slower
+  AVX2 741.88k (  1.35µs) (± 0.27%)  0.0B/op   1.84× slower
+AVX512   1.36M (733.74ns) (± 0.09%)  0.0B/op        fastest
+
+f32/fir	5-tap FIR filter
+Scalar  42.81k ( 23.36µs) (± 0.10%)  0.0B/op   2.73× slower
+  SSE2  42.95k ( 23.28µs) (± 0.19%)  0.0B/op   2.73× slower
+ SSE41  42.87k ( 23.32µs) (± 0.28%)  0.0B/op   2.73× slower
+  AVX2  68.63k ( 14.57µs) (± 0.50%)  0.0B/op   1.71× slower
+AVX512 117.06k (  8.54µs) (± 0.56%)  0.0B/op        fastest
+
+f32/floor	dst = floor(a)
+Scalar 234.05k (  4.27µs) (± 0.70%)  0.0B/op  43.76× slower
+  SSE2 234.67k (  4.26µs) (± 0.57%)  0.0B/op  43.65× slower
+ SSE41   2.95M (338.89ns) (± 1.19%)  0.0B/op   3.47× slower
+  AVX2   5.67M (176.22ns) (± 1.45%)  0.0B/op   1.81× slower
+AVX512  10.24M ( 97.63ns) (± 1.07%)  0.0B/op        fastest
+
+f32/fma	dst = a*b + c
+Scalar 568.66k (  1.76µs) (± 0.35%)  0.0B/op   6.63× slower
+  SSE2 586.70k (  1.70µs) (± 0.64%)  0.0B/op   6.43× slower
+ SSE41 580.77k (  1.72µs) (± 0.37%)  0.0B/op   6.49× slower
+  AVX2   3.11M (321.06ns) (± 0.22%)  0.0B/op   1.21× slower
+AVX512   3.77M (265.25ns) (± 0.65%)  0.0B/op        fastest
+
+f32/max_elem	dst[i] = max(a[i], b[i])
+Scalar   1.15M (866.24ns) (± 0.45%)  0.0B/op   6.14× slower
+  SSE2   1.16M (859.71ns) (± 0.51%)  0.0B/op   6.10× slower
+ SSE41   1.17M (857.69ns) (± 0.37%)  0.0B/op   6.08× slower
+  AVX2   3.60M (278.02ns) (± 0.36%)  0.0B/op   1.97× slower
+AVX512   7.09M (140.97ns) (± 1.65%)  0.0B/op        fastest
+
+f32/max_reduce	max(a)
+Scalar 266.77k (  3.75µs) (± 0.29%)  0.0B/op   5.37× slower
+  SSE2 374.25k (  2.67µs) (± 0.67%)  0.0B/op   3.83× slower
+ SSE41 374.06k (  2.67µs) (± 0.38%)  0.0B/op   3.83× slower
+  AVX2 882.49k (  1.13µs) (± 0.16%)  0.0B/op   1.62× slower
+AVX512   1.43M (697.70ns) (± 0.25%)  0.0B/op        fastest
+
+f32/min_elem	dst[i] = min(a[i], b[i])
+Scalar   1.15M (867.50ns) (± 0.19%)  0.0B/op   6.00× slower
+  SSE2   1.17M (856.35ns) (± 0.34%)  0.0B/op   5.92× slower
+ SSE41   1.17M (856.72ns) (± 0.40%)  0.0B/op   5.93× slower
+  AVX2   2.32M (431.33ns) (± 0.47%)  0.0B/op   2.98× slower
+AVX512   6.92M (144.57ns) (± 2.99%)  0.0B/op        fastest
+
+f32/min_reduce	min(a)
+Scalar 265.20k (  3.77µs) (± 0.44%)  0.0B/op   5.40× slower
+  SSE2 374.09k (  2.67µs) (± 0.12%)  0.0B/op   3.83× slower
+ SSE41 374.92k (  2.67µs) (± 0.13%)  0.0B/op   3.82× slower
+  AVX2 880.54k (  1.14µs) (± 0.21%)  0.0B/op   1.63× slower
+AVX512   1.43M (698.58ns) (± 0.21%)  0.0B/op        fastest
+
+f32/mul	dst = a * b
+Scalar 955.72k (  1.05µs) (± 0.23%)  0.0B/op   6.94× slower
+  SSE2 957.30k (  1.04µs) (± 0.29%)  0.0B/op   6.93× slower
+ SSE41 961.46k (  1.04µs) (± 0.08%)  0.0B/op   6.90× slower
+  AVX2   3.67M (272.50ns) (± 3.74%)  0.0B/op   1.81× slower
+AVX512   6.64M (150.68ns) (± 1.58%)  0.0B/op        fastest
+
+f32/neg	dst = -a
+Scalar   2.27M (441.22ns) (± 0.40%)  0.0B/op   2.73× slower
+  SSE2   2.27M (440.88ns) (± 0.17%)  0.0B/op   2.73× slower
+ SSE41   2.28M (439.19ns) (± 0.43%)  0.0B/op   2.72× slower
+  AVX2   2.32M (431.11ns) (± 0.31%)  0.0B/op   2.67× slower
+AVX512   6.20M (161.41ns) (± 1.06%)  0.0B/op        fastest
+
+f32/round	dst = round(a)
+Scalar 136.63k (  7.32µs) (± 0.15%)  0.0B/op  64.00× slower
+  SSE2 136.32k (  7.34µs) (± 0.42%)  0.0B/op  64.14× slower
+ SSE41 954.67k (  1.05µs) (± 0.90%)  0.0B/op   9.16× slower
+  AVX2   4.50M (222.30ns) (± 1.30%)  0.0B/op   1.94× slower
+AVX512   8.74M (114.37ns) (± 1.08%)  0.0B/op        fastest
+
+f32/rsqrt	dst = rsqrt(a)
+Scalar 304.84k (  3.28µs) (± 0.59%)  0.0B/op  10.47× slower
+  SSE2 306.14k (  3.27µs) (± 0.27%)  0.0B/op  10.42× slower
+ SSE41 304.78k (  3.28µs) (± 0.26%)  0.0B/op  10.47× slower
+  AVX2   3.19M (313.38ns) (± 1.39%)  0.0B/op        fastest
+AVX512   3.19M (313.61ns) (± 1.51%)  0.0B/op   1.00× slower
+
+f32/sqrt	dst = sqrt(a)
+Scalar 304.97k (  3.28µs) (± 0.12%)  0.0B/op   6.94× slower
+  SSE2 306.64k (  3.26µs) (± 0.04%)  0.0B/op   6.90× slower
+ SSE41 305.40k (  3.27µs) (± 0.07%)  0.0B/op   6.93× slower
+  AVX2   2.12M (472.81ns) (± 0.74%)  0.0B/op        fastest
+AVX512   2.11M (473.93ns) (± 0.53%)  0.0B/op   1.00× slower
+
+f32/sub	dst = a - b
+Scalar 949.31k (  1.05µs) (± 0.58%)  0.0B/op   7.39× slower
+  SSE2 954.44k (  1.05µs) (± 0.08%)  0.0B/op   7.35× slower
+ SSE41 951.82k (  1.05µs) (± 0.29%)  0.0B/op   7.37× slower
+  AVX2   3.66M (273.06ns) (± 0.79%)  0.0B/op   1.92× slower
+AVX512   7.01M (142.56ns) (± 1.09%)  0.0B/op        fastest
+
+f32/sum	sum(a)
+Scalar 404.58k (  2.47µs) (± 0.27%)  0.0B/op   3.35× slower
+  SSE2 403.74k (  2.48µs) (± 0.25%)  0.0B/op   3.35× slower
+ SSE41 404.46k (  2.47µs) (± 0.11%)  0.0B/op   3.35× slower
+  AVX2 803.81k (  1.24µs) (± 0.32%)  0.0B/op   1.68× slower
+AVX512   1.35M (738.50ns) (± 0.82%)  0.0B/op        fastest
+
+f64/abs	dst = abs(a)
+Scalar   1.13M (881.53ns) (± 0.37%)  0.0B/op   2.00× slower
+  SSE2   1.13M (887.81ns) (± 0.22%)  0.0B/op   2.01× slower
+ SSE41   1.13M (882.41ns) (± 0.20%)  0.0B/op   2.00× slower
+  AVX2   1.99M (502.41ns) (± 3.94%)  0.0B/op   1.14× slower
+AVX512   2.27M (441.37ns) (± 0.59%)  0.0B/op        fastest
+
+f64/add	dst = a + b
+Scalar 239.74k (  4.17µs) (± 0.23%)  0.0B/op   8.90× slower
+  SSE2 238.94k (  4.19µs) (± 0.01%)  0.0B/op   8.93× slower
+ SSE41 237.40k (  4.21µs) (± 0.02%)  0.0B/op   8.99× slower
+  AVX2   1.15M (870.17ns) (± 0.40%)  0.0B/op   1.86× slower
+AVX512   2.13M (468.80ns) (± 0.35%)  0.0B/op        fastest
+
+f64/axpby	dst = alpha*a + beta*b
+Scalar 286.43k (  3.49µs) (± 0.00%)  0.0B/op   5.23× slower
+  SSE2 285.91k (  3.50µs) (± 0.00%)  0.0B/op   5.24× slower
+ SSE41 285.95k (  3.50µs) (± 0.00%)  0.0B/op   5.24× slower
+  AVX2   1.12M (894.88ns) (± 0.78%)  0.0B/op   1.34× slower
+AVX512   1.50M (667.29ns) (± 0.85%)  0.0B/op        fastest
+
+f64/ceil	dst = ceil(a)
+Scalar 125.09k (  7.99µs) (± 0.19%)  0.0B/op  27.01× slower
+  SSE2 125.35k (  7.98µs) (± 0.07%)  0.0B/op  26.95× slower
+ SSE41 480.63k (  2.08µs) (± 0.03%)  0.0B/op   7.03× slower
+  AVX2   2.65M (376.86ns) (± 6.53%)  0.0B/op   1.27× slower
+AVX512   3.38M (295.99ns) (± 1.11%)  0.0B/op        fastest
+
+f64/clamp	dst = clamp(a, lo, hi)
+Scalar 569.92k (  1.75µs) (± 0.29%)  0.0B/op   3.28× slower
+  SSE2 572.04k (  1.75µs) (± 0.02%)  0.0B/op   3.27× slower
+ SSE41 570.12k (  1.75µs) (± 0.17%)  0.0B/op   3.28× slower
+  AVX2   1.86M (536.65ns) (± 3.96%)  0.0B/op   1.00× slower
+AVX512   1.87M (535.08ns) (± 0.30%)  0.0B/op        fastest
+
+f64/cmp_eq	mask = a == b
+Scalar 335.60k (  2.98µs) (± 0.19%)  0.0B/op   2.40× slower
+  SSE2 387.65k (  2.58µs) (± 0.76%)  0.0B/op   2.08× slower
+ SSE41 381.23k (  2.62µs) (± 0.44%)  0.0B/op   2.11× slower
+  AVX2 503.59k (  1.99µs) (± 0.39%)  0.0B/op   1.60× slower
+AVX512 806.02k (  1.24µs) (± 0.27%)  0.0B/op        fastest
+
+f64/cmp_ge	mask = a >= b
+Scalar 334.21k (  2.99µs) (± 0.21%)  0.0B/op   2.41× slower
+  SSE2 570.12k (  1.75µs) (± 1.69%)  0.0B/op   1.41× slower
+ SSE41 568.71k (  1.76µs) (± 0.70%)  0.0B/op   1.42× slower
+  AVX2 577.58k (  1.73µs) (± 0.43%)  0.0B/op   1.40× slower
+AVX512 805.73k (  1.24µs) (± 0.10%)  0.0B/op        fastest
+
+f64/cmp_gt_mask	mask = a > b
+Scalar 330.52k (  3.03µs) (± 0.31%)  0.0B/op   2.70× slower
+  SSE2 381.11k (  2.62µs) (± 0.16%)  0.0B/op   2.34× slower
+ SSE41 369.42k (  2.71µs) (± 3.96%)  0.0B/op   2.42× slower
+  AVX2 498.97k (  2.00µs) (± 0.28%)  0.0B/op   1.79× slower
+AVX512 892.50k (  1.12µs) (± 0.13%)  0.0B/op        fastest
+
+f64/cmp_le	mask = a <= b
+Scalar 571.69k (  1.75µs) (± 1.13%)  0.0B/op   1.39× slower
+  SSE2 572.25k (  1.75µs) (± 1.46%)  0.0B/op   1.39× slower
+ SSE41 569.15k (  1.76µs) (± 0.62%)  0.0B/op   1.40× slower
+  AVX2 565.41k (  1.77µs) (± 1.78%)  0.0B/op   1.41× slower
+AVX512 796.25k (  1.26µs) (± 1.20%)  0.0B/op        fastest
+
+f64/cmp_lt	mask = a < b
+Scalar 533.15k (  1.88µs) (± 0.94%)  0.0B/op   1.51× slower
+  SSE2 543.22k (  1.84µs) (± 0.44%)  0.0B/op   1.48× slower
+ SSE41 544.54k (  1.84µs) (± 0.19%)  0.0B/op   1.48× slower
+  AVX2 541.97k (  1.85µs) (± 0.46%)  0.0B/op   1.48× slower
+AVX512 803.67k (  1.24µs) (± 0.43%)  0.0B/op        fastest
+
+f64/cmp_ne	mask = a != b
+Scalar 335.62k (  2.98µs) (± 0.19%)  0.0B/op   2.39× slower
+  SSE2 371.17k (  2.69µs) (± 1.84%)  0.0B/op   2.16× slower
+ SSE41 369.37k (  2.71µs) (± 0.98%)  0.0B/op   2.17× slower
+  AVX2 494.91k (  2.02µs) (± 1.24%)  0.0B/op   1.62× slower
+AVX512 802.46k (  1.25µs) (± 0.83%)  0.0B/op        fastest
+
+f64/convert_f32	Float32 -> Float64
+Scalar   1.37M (728.78ns) (± 0.49%)  0.0B/op   2.43× slower
+  SSE2   1.41M (709.67ns) (± 0.47%)  0.0B/op   2.36× slower
+ SSE41   1.37M (731.96ns) (± 0.30%)  0.0B/op   2.44× slower
+  AVX2   1.17M (857.08ns) (± 0.55%)  0.0B/op   2.85× slower
+AVX512   3.33M (300.32ns) (± 0.55%)  0.0B/op        fastest
+
+f64/convert_i16	Int16 -> Float64
+Scalar 504.96k (  1.98µs) (± 0.18%)  0.0B/op   6.99× slower
+  SSE2 506.65k (  1.97µs) (± 0.13%)  0.0B/op   6.96× slower
+ SSE41 343.13k (  2.91µs) (± 0.50%)  0.0B/op  10.28× slower
+  AVX2   1.78M (560.48ns) (± 0.77%)  0.0B/op   1.98× slower
+AVX512   3.53M (283.41ns) (± 1.92%)  0.0B/op        fastest
+
+f64/convert_i32	Int32 -> Float64
+Scalar   1.45M (687.53ns) (± 0.37%)  0.0B/op   1.55× slower
+  SSE2   1.39M (719.69ns) (± 0.51%)  0.0B/op   1.62× slower
+ SSE41   1.39M (719.77ns) (± 0.26%)  0.0B/op   1.62× slower
+  AVX2   1.74M (574.12ns) (± 0.21%)  0.0B/op   1.29× slower
+AVX512   2.25M (444.01ns) (± 3.75%)  0.0B/op        fastest
+
+f64/div	dst = a / b
+Scalar 159.95k (  6.25µs) (± 0.62%)  0.0B/op   7.23× slower
+  SSE2 161.98k (  6.17µs) (± 0.17%)  0.0B/op   7.14× slower
+ SSE41 161.34k (  6.20µs) (± 0.01%)  0.0B/op   7.16× slower
+  AVX2   1.16M (865.18ns) (± 0.79%)  0.0B/op        fastest
+AVX512   1.15M (871.19ns) (± 2.35%)  0.0B/op   1.01× slower
+
+f64/dot	dot(a, b)
+Scalar 213.15k (  4.69µs) (± 0.29%)  0.0B/op   3.20× slower
+  SSE2 212.81k (  4.70µs) (± 0.48%)  0.0B/op   3.21× slower
+ SSE41 213.06k (  4.69µs) (± 0.20%)  0.0B/op   3.21× slower
+  AVX2 370.20k (  2.70µs) (± 0.43%)  0.0B/op   1.84× slower
+AVX512 682.97k (  1.46µs) (± 0.28%)  0.0B/op        fastest
+
+f64/fir	5-tap FIR filter
+Scalar  42.41k ( 23.58µs) (± 0.33%)  0.0B/op   1.42× slower
+  SSE2  42.42k ( 23.57µs) (± 0.23%)  0.0B/op   1.42× slower
+ SSE41  42.59k ( 23.48µs) (± 0.25%)  0.0B/op   1.41× slower
+  AVX2  42.53k ( 23.51µs) (± 0.37%)  0.0B/op   1.41× slower
+AVX512  60.05k ( 16.65µs) (± 0.17%)  0.0B/op        fastest
+
+f64/floor	dst = floor(a)
+Scalar 231.03k (  4.33µs) (± 1.08%)  0.0B/op  15.17× slower
+  SSE2 230.82k (  4.33µs) (± 0.75%)  0.0B/op  15.18× slower
+ SSE41   1.47M (682.54ns) (± 1.12%)  0.0B/op   2.39× slower
+  AVX2   2.76M (362.46ns) (± 1.41%)  0.0B/op   1.27× slower
+AVX512   3.50M (285.36ns) (± 0.47%)  0.0B/op        fastest
+
+f64/fma	dst = a*b + c
+Scalar 283.20k (  3.53µs) (± 0.24%)  0.0B/op   5.78× slower
+  SSE2 283.59k (  3.53µs) (± 0.08%)  0.0B/op   5.77× slower
+ SSE41 282.26k (  3.54µs) (± 0.27%)  0.0B/op   5.80× slower
+  AVX2   1.55M (644.95ns) (± 2.59%)  0.0B/op   1.06× slower
+AVX512   1.64M (610.62ns) (± 0.38%)  0.0B/op        fastest
+
+f64/max_elem	dst[i] = max(a[i], b[i])
+Scalar 297.75k (  3.36µs) (± 0.24%)  0.0B/op   7.18× slower
+  SSE2 298.12k (  3.35µs) (± 0.14%)  0.0B/op   7.17× slower
+ SSE41 299.12k (  3.34µs) (± 0.18%)  0.0B/op   7.14× slower
+  AVX2   1.16M (865.31ns) (± 1.16%)  0.0B/op   1.85× slower
+AVX512   2.14M (467.97ns) (± 0.80%)  0.0B/op        fastest
+
+f64/max_reduce	max(a)
+Scalar 266.36k (  3.75µs) (± 0.22%)  0.0B/op   2.69× slower
+  SSE2 265.28k (  3.77µs) (± 0.39%)  0.0B/op   2.70× slower
+ SSE41 266.11k (  3.76µs) (± 0.17%)  0.0B/op   2.69× slower
+  AVX2 437.46k (  2.29µs) (± 1.37%)  0.0B/op   1.64× slower
+AVX512 715.32k (  1.40µs) (± 0.18%)  0.0B/op        fastest
+
+f64/min_elem	dst[i] = min(a[i], b[i])
+Scalar 297.31k (  3.36µs) (± 0.19%)  0.0B/op   7.15× slower
+  SSE2 297.85k (  3.36µs) (± 0.02%)  0.0B/op   7.13× slower
+ SSE41 298.36k (  3.35µs) (± 0.24%)  0.0B/op   7.12× slower
+  AVX2   1.17M (855.54ns) (± 0.26%)  0.0B/op   1.82× slower
+AVX512   2.13M (470.56ns) (± 0.27%)  0.0B/op        fastest
+
+f64/min_reduce	min(a)
+Scalar 268.03k (  3.73µs) (± 0.19%)  0.0B/op   2.67× slower
+  SSE2 268.27k (  3.73µs) (± 0.26%)  0.0B/op   2.67× slower
+ SSE41 267.94k (  3.73µs) (± 0.08%)  0.0B/op   2.67× slower
+  AVX2 442.63k (  2.26µs) (± 0.10%)  0.0B/op   1.62× slower
+AVX512 716.23k (  1.40µs) (± 0.62%)  0.0B/op        fastest
+
+f64/mul	dst = a * b
+Scalar 240.58k (  4.16µs) (± 0.30%)  0.0B/op   8.86× slower
+  SSE2 240.54k (  4.16µs) (± 0.06%)  0.0B/op   8.86× slower
+ SSE41 240.21k (  4.16µs) (± 0.01%)  0.0B/op   8.87× slower
+  AVX2   1.16M (862.92ns) (± 1.05%)  0.0B/op   1.84× slower
+AVX512   2.13M (469.28ns) (± 0.82%)  0.0B/op        fastest
+
+f64/neg	dst = -a
+Scalar   1.13M (884.79ns) (± 0.16%)  0.0B/op   1.98× slower
+  SSE2   1.13M (886.21ns) (± 0.35%)  0.0B/op   1.98× slower
+ SSE41   1.14M (880.76ns) (± 0.20%)  0.0B/op   1.97× slower
+  AVX2   1.98M (505.40ns) (± 0.72%)  0.0B/op   1.13× slower
+AVX512   2.24M (447.32ns) (± 0.29%)  0.0B/op        fastest
+
+f64/round	dst = round(a)
+Scalar 124.72k (  8.02µs) (± 1.83%)  0.0B/op  31.27× slower
+  SSE2 126.67k (  7.89µs) (± 0.24%)  0.0B/op  30.79× slower
+ SSE41 477.92k (  2.09µs) (± 0.30%)  0.0B/op   8.16× slower
+  AVX2   1.97M (507.82ns) (± 9.36%)  0.0B/op   1.98× slower
+AVX512   3.90M (256.38ns) (± 0.41%)  0.0B/op        fastest
+
+f64/rsqrt	dst = rsqrt(a)
+Scalar  84.29k ( 11.86µs) (± 0.28%)  0.0B/op   4.92× slower
+  SSE2  84.45k ( 11.84µs) (± 0.06%)  0.0B/op   4.91× slower
+ SSE41  84.20k ( 11.88µs) (± 0.16%)  0.0B/op   4.93× slower
+  AVX2 415.05k (  2.41µs) (± 0.54%)  0.0B/op        fastest
+AVX512 384.90k (  2.60µs) (± 0.27%)  0.0B/op   1.08× slower
+
+f64/sqrt	dst = sqrt(a)
+Scalar 111.07k (  9.00µs) (± 0.01%)  0.0B/op   5.66× slower
+  SSE2 110.67k (  9.04µs) (± 0.32%)  0.0B/op   5.68× slower
+ SSE41 111.45k (  8.97µs) (± 0.03%)  0.0B/op   5.64× slower
+  AVX2 628.89k (  1.59µs) (± 0.80%)  0.0B/op        fastest
+AVX512 601.82k (  1.66µs) (± 0.42%)  0.0B/op   1.04× slower
+
+f64/sub	dst = a - b
+Scalar 237.06k (  4.22µs) (± 0.18%)  0.0B/op   8.49× slower
+  SSE2 235.46k (  4.25µs) (± 0.15%)  0.0B/op   8.55× slower
+ SSE41 235.97k (  4.24µs) (± 0.21%)  0.0B/op   8.53× slower
+  AVX2   1.09M (913.37ns) (± 0.43%)  0.0B/op   1.84× slower
+AVX512   2.01M (496.68ns) (± 1.57%)  0.0B/op        fastest
+
+f64/sum	sum(a)
+Scalar 401.19k (  2.49µs) (± 0.74%)  0.0B/op   1.71× slower
+  SSE2 403.14k (  2.48µs) (± 0.45%)  0.0B/op   1.70× slower
+ SSE41 402.76k (  2.48µs) (± 0.10%)  0.0B/op   1.71× slower
+  AVX2 400.50k (  2.50µs) (± 0.90%)  0.0B/op   1.72× slower
+AVX512 686.96k (  1.46µs) (± 0.30%)  0.0B/op        fastest
+
+i16/abs	dst = abs(a)
+Scalar   2.14M (467.47ns) (± 0.17%)  0.0B/op   4.39× slower
+  SSE2   2.14M (468.10ns) (± 0.17%)  0.0B/op   4.39× slower
+ SSE41   2.14M (468.23ns) (± 0.24%)  0.0B/op   4.40× slower
+  AVX2   7.78M (128.61ns) (± 0.46%)  0.0B/op   1.21× slower
+AVX512   9.39M (106.52ns) (± 0.31%)  0.0B/op        fastest
+
+i16/add	dst = a + b
+Scalar   2.29M (435.87ns) (± 0.06%)  0.0B/op   6.37× slower
+  SSE2   2.34M (427.02ns) (± 2.38%)  0.0B/op   6.24× slower
+ SSE41   2.28M (439.17ns) (± 0.20%)  0.0B/op   6.41× slower
+  AVX2   7.79M (128.41ns) (± 6.63%)  0.0B/op   1.88× slower
+AVX512  14.60M ( 68.47ns) (± 6.48%)  0.0B/op        fastest
+
+i16/bitwise_and	dst = a & b
+Scalar   2.33M (428.42ns) (± 0.34%)  0.0B/op   6.75× slower
+  SSE2   2.34M (427.67ns) (± 0.05%)  0.0B/op   6.74× slower
+ SSE41   2.34M (427.88ns) (± 0.17%)  0.0B/op   6.74× slower
+  AVX2   8.53M (117.22ns) (± 0.55%)  0.0B/op   1.85× slower
+AVX512  15.76M ( 63.46ns) (± 1.06%)  0.0B/op        fastest
+
+i16/bitwise_or	dst = a | b
+Scalar   2.33M (428.43ns) (± 0.01%)  0.0B/op   6.74× slower
+  SSE2   2.33M (428.69ns) (± 0.37%)  0.0B/op   6.75× slower
+ SSE41   2.34M (428.01ns) (± 0.40%)  0.0B/op   6.74× slower
+  AVX2   8.56M (116.84ns) (± 0.59%)  0.0B/op   1.84× slower
+AVX512  15.74M ( 63.55ns) (± 1.11%)  0.0B/op        fastest
+
+i16/bswap	byte swap
+Scalar   2.00M (499.00ns) (± 0.21%)  0.0B/op   5.99× slower
+  SSE2   2.01M (498.43ns) (± 0.23%)  0.0B/op   5.98× slower
+ SSE41   2.36M (423.74ns) (± 0.24%)  0.0B/op   5.09× slower
+  AVX2   8.64M (115.80ns) (± 0.73%)  0.0B/op   1.39× slower
+AVX512  12.00M ( 83.31ns) (± 0.76%)  0.0B/op        fastest
+
+i16/clamp	dst = clamp(a, lo, hi)
+Scalar   3.11M (321.41ns) (± 0.17%)  0.0B/op   2.64× slower
+  SSE2   3.10M (322.70ns) (± 0.57%)  0.0B/op   2.65× slower
+ SSE41   3.12M (320.16ns) (± 0.54%)  0.0B/op   2.63× slower
+  AVX2   3.13M (319.35ns) (± 0.16%)  0.0B/op   2.62× slower
+AVX512   8.21M (121.79ns) (± 0.55%)  0.0B/op        fastest
+
+i16/cmp_eq	mask = a == b
+Scalar   7.43M (134.51ns) (± 0.82%)  0.0B/op   1.01× slower
+  SSE2   7.52M (133.05ns) (± 0.52%)  0.0B/op   1.00× slower
+ SSE41   7.51M (133.17ns) (± 0.31%)  0.0B/op   1.00× slower
+  AVX2   7.50M (133.41ns) (± 0.61%)  0.0B/op   1.00× slower
+AVX512   7.53M (132.86ns) (± 0.13%)  0.0B/op        fastest
+
+i16/cmp_ge	mask = a >= b
+Scalar   6.62M (151.12ns) (± 1.98%)  0.0B/op   1.01× slower
+  SSE2   6.66M (150.14ns) (± 0.68%)  0.0B/op        fastest
+ SSE41   6.65M (150.37ns) (± 0.57%)  0.0B/op   1.00× slower
+  AVX2   6.65M (150.37ns) (± 0.62%)  0.0B/op   1.00× slower
+AVX512   6.64M (150.51ns) (± 0.75%)  0.0B/op   1.00× slower
+
+i16/cmp_gt_mask	mask = a > b
+Scalar   7.47M (133.83ns) (± 1.52%)  0.0B/op   1.01× slower
+  SSE2   7.57M (132.14ns) (± 0.35%)  0.0B/op        fastest
+ SSE41   7.51M (133.10ns) (± 1.27%)  0.0B/op   1.01× slower
+  AVX2   7.57M (132.18ns) (± 0.57%)  0.0B/op   1.00× slower
+AVX512   7.54M (132.69ns) (± 0.61%)  0.0B/op   1.00× slower
+
+i16/cmp_le	mask = a <= b
+Scalar   6.60M (151.49ns) (± 0.92%)  0.0B/op   1.01× slower
+  SSE2   6.64M (150.57ns) (± 0.27%)  0.0B/op        fastest
+ SSE41   6.60M (151.55ns) (± 0.34%)  0.0B/op   1.01× slower
+  AVX2   6.61M (151.38ns) (± 0.22%)  0.0B/op   1.01× slower
+AVX512   6.49M (154.02ns) (± 1.63%)  0.0B/op   1.02× slower
+
+i16/cmp_lt	mask = a < b
+Scalar   7.56M (132.23ns) (± 1.33%)  0.0B/op   1.01× slower
+  SSE2   7.63M (131.12ns) (± 0.19%)  0.0B/op   1.00× slower
+ SSE41   7.61M (131.48ns) (± 0.38%)  0.0B/op   1.01× slower
+  AVX2   7.65M (130.77ns) (± 0.12%)  0.0B/op        fastest
+AVX512   7.62M (131.28ns) (± 0.25%)  0.0B/op   1.00× slower
+
+i16/cmp_ne	mask = a != b
+Scalar   4.45M (224.69ns) (± 0.46%)  0.0B/op   1.00× slower
+  SSE2   4.46M (224.21ns) (± 0.40%)  0.0B/op   1.00× slower
+ SSE41   4.46M (224.15ns) (± 0.20%)  0.0B/op        fastest
+  AVX2   4.42M (226.10ns) (± 1.63%)  0.0B/op   1.01× slower
+AVX512   4.44M (225.05ns) (± 0.70%)  0.0B/op   1.00× slower
+
+i16/max_elem	dst[i] = max(a[i], b[i])
+Scalar   2.34M (427.59ns) (± 0.28%)  0.0B/op   7.25× slower
+  SSE2   2.33M (429.01ns) (± 0.08%)  0.0B/op   7.28× slower
+ SSE41   2.36M (424.15ns) (± 0.04%)  0.0B/op   7.19× slower
+  AVX2   6.61M (151.25ns) (± 1.02%)  0.0B/op   2.57× slower
+AVX512  16.96M ( 58.97ns) (± 0.17%)  0.0B/op        fastest
+
+i16/max_reduce	max(a)
+Scalar   8.63M (115.84ns) (± 0.65%)  0.0B/op   1.15× slower
+  SSE2   9.92M (100.83ns) (± 0.12%)  0.0B/op   1.00× slower
+ SSE41   9.92M (100.80ns) (± 0.20%)  0.0B/op        fastest
+  AVX2   9.86M (101.39ns) (± 0.73%)  0.0B/op   1.01× slower
+AVX512   9.86M (101.47ns) (± 0.55%)  0.0B/op   1.01× slower
+
+i16/min_elem	dst[i] = min(a[i], b[i])
+Scalar   2.33M (429.47ns) (± 0.35%)  0.0B/op   7.32× slower
+  SSE2   2.34M (427.47ns) (± 0.10%)  0.0B/op   7.28× slower
+ SSE41   2.38M (419.73ns) (± 0.05%)  0.0B/op   7.15× slower
+  AVX2   6.69M (149.52ns) (± 0.21%)  0.0B/op   2.55× slower
+AVX512  17.04M ( 58.70ns) (± 0.10%)  0.0B/op        fastest
+
+i16/min_reduce	min(a)
+Scalar   8.68M (115.25ns) (± 0.05%)  0.0B/op   1.14× slower
+  SSE2   9.91M (100.94ns) (± 0.21%)  0.0B/op        fastest
+ SSE41   9.88M (101.17ns) (± 0.53%)  0.0B/op   1.00× slower
+  AVX2   9.89M (101.09ns) (± 0.18%)  0.0B/op   1.00× slower
+AVX512   9.90M (101.04ns) (± 0.36%)  0.0B/op   1.00× slower
+
+i16/mul	dst = a * b
+Scalar   1.94M (514.98ns) (± 0.24%)  0.0B/op   4.87× slower
+  SSE2   1.91M (522.55ns) (± 0.31%)  0.0B/op   4.94× slower
+ SSE41   1.90M (524.94ns) (± 0.01%)  0.0B/op   4.96× slower
+  AVX2   8.59M (116.37ns) (± 1.91%)  0.0B/op   1.10× slower
+AVX512   9.46M (105.76ns) (± 0.21%)  0.0B/op        fastest
+
+i16/neg	dst = -a
+Scalar   3.06M (326.56ns) (± 0.25%)  0.0B/op   5.44× slower
+  SSE2   3.06M (326.79ns) (± 0.26%)  0.0B/op   5.44× slower
+ SSE41   3.07M (326.25ns) (± 0.06%)  0.0B/op   5.43× slower
+  AVX2   4.65M (214.91ns) (± 0.43%)  0.0B/op   3.58× slower
+AVX512  16.66M ( 60.04ns) (± 0.54%)  0.0B/op        fastest
+
+i16/sub	dst = a - b
+Scalar   2.36M (423.74ns) (± 0.12%)  0.0B/op   6.86× slower
+  SSE2   2.37M (422.65ns) (± 0.23%)  0.0B/op   6.84× slower
+ SSE41   2.38M (420.53ns) (± 0.32%)  0.0B/op   6.81× slower
+  AVX2   8.70M (114.91ns) (± 0.28%)  0.0B/op   1.86× slower
+AVX512  16.19M ( 61.78ns) (± 0.17%)  0.0B/op        fastest
+
+i16/sum	sum(a)
+Scalar  10.86M ( 92.06ns) (± 0.59%)  0.0B/op   1.01× slower
+  SSE2  10.96M ( 91.25ns) (± 0.12%)  0.0B/op   1.00× slower
+ SSE41  10.96M ( 91.25ns) (± 0.13%)  0.0B/op   1.00× slower
+  AVX2  10.96M ( 91.27ns) (± 0.34%)  0.0B/op   1.00× slower
+AVX512  10.96M ( 91.21ns) (± 0.54%)  0.0B/op        fastest
+
+i16/xor	dst = a ^ b
+Scalar   2.37M (422.83ns) (± 0.01%)  0.0B/op   6.81× slower
+  SSE2   2.37M (421.59ns) (± 0.08%)  0.0B/op   6.79× slower
+ SSE41   2.37M (421.97ns) (± 0.32%)  0.0B/op   6.80× slower
+  AVX2   8.70M (114.98ns) (± 0.40%)  0.0B/op   1.85× slower
+AVX512  16.12M ( 62.05ns) (± 0.34%)  0.0B/op        fastest
+
+i32/abs	dst = abs(a)
+Scalar 848.44k (  1.18µs) (± 0.00%)  0.0B/op   9.71× slower
+  SSE2 855.00k (  1.17µs) (± 0.00%)  0.0B/op   9.63× slower
+ SSE41 861.67k (  1.16µs) (± 0.20%)  0.0B/op   9.56× slower
+  AVX2   4.18M (239.34ns) (± 0.33%)  0.0B/op   1.97× slower
+AVX512   8.23M (121.44ns) (± 0.53%)  0.0B/op        fastest
+
+i32/add	dst = a + b
+Scalar   1.17M (852.58ns) (± 0.01%)  0.0B/op   6.18× slower
+  SSE2   1.18M (848.13ns) (± 0.12%)  0.0B/op   6.15× slower
+ SSE41   1.18M (847.28ns) (± 0.02%)  0.0B/op   6.15× slower
+  AVX2   4.37M (228.62ns) (± 0.07%)  0.0B/op   1.66× slower
+AVX512   7.25M (137.87ns) (± 1.05%)  0.0B/op        fastest
+
+i32/bitwise_and	dst = a & b
+Scalar   1.17M (853.44ns) (± 0.11%)  0.0B/op   6.27× slower
+  SSE2   1.17M (856.36ns) (± 0.01%)  0.0B/op   6.30× slower
+ SSE41   1.17M (853.94ns) (± 0.02%)  0.0B/op   6.28× slower
+  AVX2   3.08M (324.89ns) (± 0.53%)  0.0B/op   2.39× slower
+AVX512   7.35M (136.01ns) (± 0.41%)  0.0B/op        fastest
+
+i32/bitwise_or	dst = a | b
+Scalar   1.16M (858.53ns) (± 0.21%)  0.0B/op   3.94× slower
+  SSE2   1.18M (849.38ns) (± 0.33%)  0.0B/op   3.89× slower
+ SSE41   1.17M (851.91ns) (± 0.34%)  0.0B/op   3.91× slower
+  AVX2   4.41M (226.62ns) (± 0.35%)  0.0B/op   1.04× slower
+AVX512   4.58M (218.16ns) (± 0.17%)  0.0B/op        fastest
+
+i32/bswap	byte swap
+Scalar 565.04k (  1.77µs) (± 0.03%)  0.0B/op   8.17× slower
+  SSE2 566.28k (  1.77µs) (± 0.09%)  0.0B/op   8.15× slower
+ SSE41   1.19M (839.29ns) (± 0.13%)  0.0B/op   3.87× slower
+  AVX2   3.10M (322.29ns) (± 0.07%)  0.0B/op   1.49× slower
+AVX512   4.61M (216.73ns) (± 0.06%)  0.0B/op        fastest
+
+i32/clamp	dst = clamp(a, lo, hi)
+Scalar 364.52k (  2.74µs) (± 0.00%)  0.0B/op  11.69× slower
+  SSE2 365.10k (  2.74µs) (± 0.00%)  0.0B/op  11.68× slower
+ SSE41 365.28k (  2.74µs) (± 0.00%)  0.0B/op  11.67× slower
+  AVX2   4.10M (243.95ns) (± 0.72%)  0.0B/op   1.04× slower
+AVX512   4.26M (234.58ns) (± 0.33%)  0.0B/op        fastest
+
+i32/cmp_eq	mask = a == b
+Scalar   4.06M (246.02ns) (± 0.60%)  0.0B/op   1.00× slower
+  SSE2   4.07M (245.83ns) (± 0.33%)  0.0B/op        fastest
+ SSE41   3.91M (256.06ns) (± 0.38%)  0.0B/op   1.04× slower
+  AVX2   3.91M (255.56ns) (± 0.46%)  0.0B/op   1.04× slower
+AVX512   3.89M (257.08ns) (± 0.37%)  0.0B/op   1.05× slower
+
+i32/cmp_ge	mask = a >= b
+Scalar 491.27k (  2.04µs) (± 0.00%)  0.0B/op   1.24× slower
+  SSE2 502.05k (  1.99µs) (± 0.87%)  0.0B/op   1.21× slower
+ SSE41 504.81k (  1.98µs) (± 0.40%)  0.0B/op   1.20× slower
+  AVX2 607.20k (  1.65µs) (± 0.24%)  0.0B/op        fastest
+AVX512 603.78k (  1.66µs) (± 0.62%)  0.0B/op   1.01× slower
+
+i32/cmp_gt_mask	mask = a > b
+Scalar 607.14k (  1.65µs) (± 0.00%)  0.0B/op   1.54× slower
+  SSE2 608.18k (  1.64µs) (± 0.00%)  0.0B/op   1.53× slower
+ SSE41 606.53k (  1.65µs) (± 0.00%)  0.0B/op   1.54× slower
+  AVX2 623.10k (  1.60µs) (± 1.71%)  0.0B/op   1.50× slower
+AVX512 932.19k (  1.07µs) (± 0.41%)  0.0B/op        fastest
+
+i32/cmp_le	mask = a <= b
+Scalar 493.36k (  2.03µs) (± 0.00%)  0.0B/op   1.23× slower
+  SSE2 505.02k (  1.98µs) (± 0.23%)  0.0B/op   1.20× slower
+ SSE41 504.71k (  1.98µs) (± 0.04%)  0.0B/op   1.20× slower
+  AVX2 608.09k (  1.64µs) (± 0.34%)  0.0B/op        fastest
+AVX512 608.05k (  1.64µs) (± 0.07%)  0.0B/op   1.00× slower
+
+i32/cmp_lt	mask = a < b
+Scalar   2.33M (429.70ns) (± 0.55%)  0.0B/op   1.00× slower
+  SSE2   2.33M (429.18ns) (± 0.25%)  0.0B/op   1.00× slower
+ SSE41   2.33M (430.03ns) (± 0.70%)  0.0B/op   1.00× slower
+  AVX2   2.33M (428.60ns) (± 0.28%)  0.0B/op        fastest
+AVX512   2.33M (428.71ns) (± 0.20%)  0.0B/op   1.00× slower
+
+i32/cmp_ne	mask = a != b
+Scalar 492.37k (  2.03µs) (± 0.00%)  0.0B/op   1.24× slower
+  SSE2 508.72k (  1.97µs) (± 0.61%)  0.0B/op   1.20× slower
+ SSE41 509.11k (  1.96µs) (± 1.00%)  0.0B/op   1.20× slower
+  AVX2 609.55k (  1.64µs) (± 0.15%)  0.0B/op        fastest
+AVX512 607.19k (  1.65µs) (± 1.00%)  0.0B/op   1.00× slower
+
+i32/max_elem	dst[i] = max(a[i], b[i])
+Scalar 597.66k (  1.67µs) (± 0.21%)  0.0B/op   5.91× slower
+  SSE2 596.70k (  1.68µs) (± 0.23%)  0.0B/op   5.92× slower
+ SSE41   1.20M (835.33ns) (± 0.39%)  0.0B/op   2.95× slower
+  AVX2   3.49M (286.59ns) (± 0.82%)  0.0B/op   1.01× slower
+AVX512   3.53M (283.06ns) (± 0.42%)  0.0B/op        fastest
+
+i32/max_reduce	max(a)
+Scalar 621.65k (  1.61µs) (± 0.04%)  0.0B/op   2.32× slower
+  SSE2 618.98k (  1.62µs) (± 0.27%)  0.0B/op   2.33× slower
+ SSE41 616.67k (  1.62µs) (± 0.78%)  0.0B/op   2.34× slower
+  AVX2 855.86k (  1.17µs) (± 1.67%)  0.0B/op   1.69× slower
+AVX512   1.44M (692.57ns) (± 0.88%)  0.0B/op        fastest
+
+i32/min_elem	dst[i] = min(a[i], b[i])
+Scalar 589.87k (  1.70µs) (± 0.14%)  0.0B/op   3.95× slower
+  SSE2 604.36k (  1.65µs) (± 0.18%)  0.0B/op   3.85× slower
+ SSE41   1.20M (832.50ns) (± 0.07%)  0.0B/op   1.94× slower
+  AVX2   2.33M (429.72ns) (± 0.41%)  0.0B/op        fastest
+AVX512   2.32M (430.47ns) (± 0.63%)  0.0B/op   1.00× slower
+
+i32/min_reduce	min(a)
+Scalar 685.43k (  1.46µs) (± 0.02%)  0.0B/op   2.16× slower
+  SSE2 684.69k (  1.46µs) (± 0.05%)  0.0B/op   2.16× slower
+ SSE41 681.95k (  1.47µs) (± 0.31%)  0.0B/op   2.17× slower
+  AVX2 889.12k (  1.12µs) (± 0.24%)  0.0B/op   1.66× slower
+AVX512   1.48M (675.52ns) (± 0.30%)  0.0B/op        fastest
+
+i32/mul	dst = a * b
+Scalar 666.40k (  1.50µs) (± 0.85%)  0.0B/op  10.67× slower
+  SSE2 664.87k (  1.50µs) (± 0.48%)  0.0B/op  10.70× slower
+ SSE41 953.89k (  1.05µs) (± 0.43%)  0.0B/op   7.46× slower
+  AVX2   4.43M (225.49ns) (± 0.26%)  0.0B/op   1.60× slower
+AVX512   7.11M (140.58ns) (± 0.28%)  0.0B/op        fastest
+
+i32/neg	dst = -a
+Scalar   1.54M (647.35ns) (± 0.10%)  0.0B/op   5.39× slower
+  SSE2   1.55M (645.91ns) (± 0.08%)  0.0B/op   5.38× slower
+ SSE41   1.54M (649.76ns) (± 0.15%)  0.0B/op   5.41× slower
+  AVX2   2.37M (422.46ns) (± 0.17%)  0.0B/op   3.52× slower
+AVX512   8.33M (120.07ns) (± 1.60%)  0.0B/op        fastest
+
+i32/sub	dst = a - b
+Scalar   1.19M (843.69ns) (± 0.11%)  0.0B/op   6.00× slower
+  SSE2   1.18M (847.43ns) (± 0.34%)  0.0B/op   6.02× slower
+ SSE41   1.18M (848.28ns) (± 0.12%)  0.0B/op   6.03× slower
+  AVX2   4.38M (228.26ns) (± 0.42%)  0.0B/op   1.62× slower
+AVX512   7.11M (140.66ns) (± 0.29%)  0.0B/op        fastest
+
+i32/sum	sum(a)
+Scalar   5.55M (180.24ns) (± 0.20%)  0.0B/op        fastest
+  SSE2   5.34M (187.35ns) (± 1.70%)  0.0B/op   1.04× slower
+ SSE41   5.32M (187.80ns) (± 0.30%)  0.0B/op   1.04× slower
+  AVX2   5.33M (187.67ns) (± 0.42%)  0.0B/op   1.04× slower
+AVX512   5.39M (185.46ns) (± 1.61%)  0.0B/op   1.03× slower
+
+i32/xor	dst = a ^ b
+Scalar   1.17M (855.47ns) (± 0.17%)  0.0B/op   6.22× slower
+  SSE2   1.19M (842.89ns) (± 0.10%)  0.0B/op   6.13× slower
+ SSE41   1.18M (844.78ns) (± 0.10%)  0.0B/op   6.14× slower
+  AVX2   3.09M (324.05ns) (± 0.28%)  0.0B/op   2.36× slower
+AVX512   7.27M (137.57ns) (± 1.08%)  0.0B/op        fastest
+
+i64/abs	dst = abs(a)
+Scalar 423.40k (  2.36µs) (± 0.03%)  0.0B/op   9.63× slower
+  SSE2 428.21k (  2.34µs) (± 0.08%)  0.0B/op   9.52× slower
+ SSE41 425.06k (  2.35µs) (± 0.25%)  0.0B/op   9.60× slower
+  AVX2 424.43k (  2.36µs) (± 0.22%)  0.0B/op   9.61× slower
+AVX512   4.08M (245.18ns) (± 1.04%)  0.0B/op        fastest
+
+i64/add	dst = a + b
+Scalar 768.58k (  1.30µs) (± 0.33%)  0.0B/op   2.90× slower
+  SSE2 769.28k (  1.30µs) (± 0.06%)  0.0B/op   2.89× slower
+ SSE41 761.71k (  1.31µs) (± 1.23%)  0.0B/op   2.92× slower
+  AVX2   2.13M (468.68ns) (± 2.19%)  0.0B/op   1.04× slower
+AVX512   2.23M (449.03ns) (± 0.77%)  0.0B/op        fastest
+
+i64/bitwise_and	dst = a & b
+Scalar 753.50k (  1.33µs) (± 1.10%)  0.0B/op   2.88× slower
+  SSE2 686.22k (  1.46µs) (± 9.55%)  0.0B/op   3.16× slower
+ SSE41 742.07k (  1.35µs) (± 1.73%)  0.0B/op   2.92× slower
+  AVX2   2.04M (491.07ns) (± 2.25%)  0.0B/op   1.07× slower
+AVX512   2.17M (460.88ns) (± 1.39%)  0.0B/op        fastest
+
+i64/bitwise_or	dst = a | b
+Scalar 739.31k (  1.35µs) (± 3.34%)  0.0B/op   2.86× slower
+  SSE2 761.02k (  1.31µs) (± 0.45%)  0.0B/op   2.78× slower
+ SSE41 759.27k (  1.32µs) (± 0.48%)  0.0B/op   2.79× slower
+  AVX2   1.96M (510.43ns) (± 8.52%)  0.0B/op   1.08× slower
+AVX512   2.11M (472.86ns) (± 0.68%)  0.0B/op        fastest
+
+i64/bswap	byte swap
+Scalar 224.23k (  4.46µs) (± 0.10%)  0.0B/op  10.15× slower
+  SSE2 223.23k (  4.48µs) (± 0.55%)  0.0B/op  10.20× slower
+ SSE41 578.68k (  1.73µs) (± 0.98%)  0.0B/op   3.93× slower
+  AVX2   2.09M (477.98ns) (± 2.07%)  0.0B/op   1.09× slower
+AVX512   2.28M (439.33ns) (± 0.55%)  0.0B/op        fastest
+
+i64/clamp	dst = clamp(a, lo, hi)
+Scalar 538.99k (  1.86µs) (± 0.79%)  0.0B/op   1.00× slower
+  SSE2 539.28k (  1.85µs) (± 0.59%)  0.0B/op        fastest
+ SSE41 539.06k (  1.86µs) (± 0.76%)  0.0B/op   1.00× slower
+  AVX2 520.34k (  1.92µs) (± 3.86%)  0.0B/op   1.04× slower
+AVX512 536.74k (  1.86µs) (± 1.74%)  0.0B/op   1.00× slower
+
+i64/cmp_eq	mask = a == b
+Scalar 564.40k (  1.77µs) (± 0.72%)  0.0B/op   1.01× slower
+  SSE2 572.23k (  1.75µs) (± 0.67%)  0.0B/op        fastest
+ SSE41 571.66k (  1.75µs) (± 0.69%)  0.0B/op   1.00× slower
+  AVX2 571.39k (  1.75µs) (± 0.64%)  0.0B/op   1.00× slower
+AVX512 570.54k (  1.75µs) (± 1.18%)  0.0B/op   1.00× slower
+
+i64/cmp_ge	mask = a >= b
+Scalar 569.85k (  1.75µs) (± 0.94%)  0.0B/op   1.01× slower
+  SSE2 568.73k (  1.76µs) (± 0.98%)  0.0B/op   1.01× slower
+ SSE41 570.77k (  1.75µs) (± 1.33%)  0.0B/op   1.01× slower
+  AVX2 565.47k (  1.77µs) (± 1.44%)  0.0B/op   1.02× slower
+AVX512 574.39k (  1.74µs) (± 0.50%)  0.0B/op        fastest
+
+i64/cmp_gt_mask	mask = a > b
+Scalar 567.19k (  1.76µs) (± 2.48%)  0.0B/op   1.58× slower
+  SSE2 572.73k (  1.75µs) (± 1.20%)  0.0B/op   1.56× slower
+ SSE41 572.71k (  1.75µs) (± 0.75%)  0.0B/op   1.56× slower
+  AVX2 551.00k (  1.81µs) (± 0.62%)  0.0B/op   1.62× slower
+AVX512 893.90k (  1.12µs) (± 1.22%)  0.0B/op        fastest
+
+i64/cmp_le	mask = a <= b
+Scalar 559.32k (  1.79µs) (± 0.38%)  0.0B/op   1.01× slower
+  SSE2 564.16k (  1.77µs) (± 0.76%)  0.0B/op        fastest
+ SSE41 561.80k (  1.78µs) (± 0.57%)  0.0B/op   1.00× slower
+  AVX2 562.31k (  1.78µs) (± 0.62%)  0.0B/op   1.00× slower
+AVX512 563.18k (  1.78µs) (± 0.27%)  0.0B/op   1.00× slower
+
+i64/cmp_lt	mask = a < b
+Scalar 565.06k (  1.77µs) (± 0.36%)  0.0B/op   1.00× slower
+  SSE2 563.70k (  1.77µs) (± 0.63%)  0.0B/op   1.00× slower
+ SSE41 563.75k (  1.77µs) (± 0.60%)  0.0B/op   1.00× slower
+  AVX2 565.60k (  1.77µs) (± 0.33%)  0.0B/op        fastest
+AVX512 562.10k (  1.78µs) (± 0.76%)  0.0B/op   1.01× slower
+
+i64/cmp_ne	mask = a != b
+Scalar 571.71k (  1.75µs) (± 1.03%)  0.0B/op   1.00× slower
+  SSE2 574.29k (  1.74µs) (± 0.36%)  0.0B/op        fastest
+ SSE41 567.56k (  1.76µs) (± 0.76%)  0.0B/op   1.01× slower
+  AVX2 569.52k (  1.76µs) (± 0.55%)  0.0B/op   1.01× slower
+AVX512 572.02k (  1.75µs) (± 0.40%)  0.0B/op   1.00× slower
+
+i64/max_elem	dst[i] = max(a[i], b[i])
+Scalar 605.13k (  1.65µs) (± 1.12%)  0.0B/op   1.01× slower
+  SSE2 608.67k (  1.64µs) (± 0.23%)  0.0B/op        fastest
+ SSE41 601.17k (  1.66µs) (± 0.73%)  0.0B/op   1.01× slower
+  AVX2 596.08k (  1.68µs) (± 1.89%)  0.0B/op   1.02× slower
+AVX512 605.06k (  1.65µs) (± 0.75%)  0.0B/op   1.01× slower
+
+i64/max_reduce	max(a)
+Scalar 319.89k (  3.13µs) (± 0.75%)  0.0B/op   1.01× slower
+  SSE2 320.80k (  3.12µs) (± 0.67%)  0.0B/op   1.00× slower
+ SSE41 320.42k (  3.12µs) (± 0.91%)  0.0B/op   1.00× slower
+  AVX2 321.85k (  3.11µs) (± 0.32%)  0.0B/op        fastest
+AVX512 319.65k (  3.13µs) (± 0.99%)  0.0B/op   1.01× slower
+
+i64/min_elem	dst[i] = min(a[i], b[i])
+Scalar 577.97k (  1.73µs) (± 0.49%)  0.0B/op   1.01× slower
+  SSE2 576.53k (  1.73µs) (± 0.99%)  0.0B/op   1.01× slower
+ SSE41 581.02k (  1.72µs) (± 0.67%)  0.0B/op        fastest
+  AVX2 576.99k (  1.73µs) (± 0.52%)  0.0B/op   1.01× slower
+AVX512 577.06k (  1.73µs) (± 0.84%)  0.0B/op   1.01× slower
+
+i64/min_reduce	min(a)
+Scalar 319.79k (  3.13µs) (± 0.89%)  0.0B/op   1.01× slower
+  SSE2 320.33k (  3.12µs) (± 0.69%)  0.0B/op   1.01× slower
+ SSE41 317.31k (  3.15µs) (± 0.81%)  0.0B/op   1.02× slower
+  AVX2 318.56k (  3.14µs) (± 1.04%)  0.0B/op   1.01× slower
+AVX512 323.08k (  3.10µs) (± 0.06%)  0.0B/op        fastest
+
+i64/mul	dst = a * b
+Scalar 647.28k (  1.54µs) (± 0.66%)  0.0B/op   3.39× slower
+  SSE2 653.33k (  1.53µs) (± 0.56%)  0.0B/op   3.36× slower
+ SSE41 657.28k (  1.52µs) (± 0.20%)  0.0B/op   3.34× slower
+  AVX2 648.65k (  1.54µs) (± 0.53%)  0.0B/op   3.38× slower
+AVX512   2.19M (455.91ns) (± 1.07%)  0.0B/op        fastest
+
+i64/neg	dst = -a
+Scalar 762.37k (  1.31µs) (± 0.20%)  0.0B/op   5.32× slower
+  SSE2 766.18k (  1.31µs) (± 0.17%)  0.0B/op   5.29× slower
+ SSE41 762.56k (  1.31µs) (± 0.28%)  0.0B/op   5.31× slower
+  AVX2   2.19M (456.40ns) (± 0.76%)  0.0B/op   1.85× slower
+AVX512   4.05M (246.75ns) (± 1.59%)  0.0B/op        fastest
+
+i64/sub	dst = a - b
+Scalar 756.08k (  1.32µs) (± 0.86%)  0.0B/op   2.95× slower
+  SSE2 756.85k (  1.32µs) (± 0.96%)  0.0B/op   2.95× slower
+ SSE41 758.67k (  1.32µs) (± 0.21%)  0.0B/op   2.94× slower
+  AVX2   1.54M (649.97ns) (± 0.42%)  0.0B/op   1.45× slower
+AVX512   2.23M (447.88ns) (± 0.84%)  0.0B/op        fastest
+
+i64/sum	sum(a)
+Scalar   2.54M (394.25ns) (± 0.47%)  0.0B/op   1.15× slower
+  SSE2   2.89M (345.95ns) (± 0.59%)  0.0B/op   1.01× slower
+ SSE41   2.88M (347.34ns) (± 0.97%)  0.0B/op   1.01× slower
+  AVX2   2.89M (345.82ns) (± 0.78%)  0.0B/op   1.01× slower
+AVX512   2.91M (343.64ns) (± 1.29%)  0.0B/op        fastest
+
+i64/xor	dst = a ^ b
+Scalar 753.80k (  1.33µs) (± 1.39%)  0.0B/op   2.94× slower
+  SSE2 757.30k (  1.32µs) (± 0.53%)  0.0B/op   2.92× slower
+ SSE41 758.15k (  1.32µs) (± 0.45%)  0.0B/op   2.92× slower
+  AVX2   2.06M (486.16ns) (± 2.06%)  0.0B/op   1.08× slower
+AVX512   2.21M (451.84ns) (± 0.75%)  0.0B/op        fastest
+
+i8/abs	dst = abs(a)
+Scalar   4.28M (233.87ns) (± 0.24%)  0.0B/op   8.02× slower
+  SSE2   4.22M (237.08ns) (± 0.73%)  0.0B/op   8.13× slower
+ SSE41   4.28M (233.90ns) (± 0.06%)  0.0B/op   8.02× slower
+  AVX2  17.57M ( 56.92ns) (± 0.73%)  0.0B/op   1.95× slower
+AVX512  34.29M ( 29.16ns) (± 0.89%)  0.0B/op        fastest
+
+i8/add	dst = a + b
+Scalar   4.71M (212.39ns) (± 0.29%)  0.0B/op   3.97× slower
+  SSE2   4.71M (212.24ns) (± 0.19%)  0.0B/op   3.97× slower
+ SSE41   4.71M (212.23ns) (± 0.40%)  0.0B/op   3.97× slower
+  AVX2  17.81M ( 56.15ns) (± 0.76%)  0.0B/op   1.05× slower
+AVX512  18.69M ( 53.51ns) (± 0.35%)  0.0B/op        fastest
+
+i8/bitwise_and	dst = a & b
+Scalar   4.70M (212.91ns) (± 0.73%)  0.0B/op   6.16× slower
+  SSE2   4.71M (212.37ns) (± 0.36%)  0.0B/op   6.15× slower
+ SSE41   4.70M (212.81ns) (± 0.26%)  0.0B/op   6.16× slower
+  AVX2  12.43M ( 80.48ns) (± 0.56%)  0.0B/op   2.33× slower
+AVX512  28.94M ( 34.55ns) (± 0.94%)  0.0B/op        fastest
+
+i8/bitwise_or	dst = a | b
+Scalar   4.72M (211.97ns) (± 0.03%)  0.0B/op   6.12× slower
+  SSE2   4.71M (212.18ns) (± 0.25%)  0.0B/op   6.13× slower
+ SSE41   4.72M (211.72ns) (± 0.35%)  0.0B/op   6.11× slower
+  AVX2  18.32M ( 54.58ns) (± 1.18%)  0.0B/op   1.58× slower
+AVX512  28.88M ( 34.62ns) (± 0.58%)  0.0B/op        fastest
+
+i8/clamp	dst = clamp(a, lo, hi)
+Scalar   1.44M (695.49ns) (± 0.00%)  0.0B/op  14.21× slower
+  SSE2   1.45M (689.24ns) (± 0.00%)  0.0B/op  14.08× slower
+ SSE41   1.46M (685.85ns) (± 0.00%)  0.0B/op  14.01× slower
+  AVX2   1.46M (686.44ns) (± 0.00%)  0.0B/op  14.02× slower
+AVX512  20.42M ( 48.96ns) (± 1.04%)  0.0B/op        fastest
+
+i8/cmp_eq	mask = a == b
+Scalar   4.85M (206.04ns) (± 0.22%)  0.0B/op   3.90× slower
+  SSE2   4.82M (207.61ns) (± 0.36%)  0.0B/op   3.93× slower
+ SSE41   4.82M (207.57ns) (± 0.20%)  0.0B/op   3.93× slower
+  AVX2  18.92M ( 52.86ns) (± 0.95%)  0.0B/op   1.00× slower
+AVX512  18.92M ( 52.86ns) (± 0.64%)  0.0B/op        fastest
+
+i8/cmp_ge	mask = a >= b
+Scalar   3.26M (306.67ns) (± 0.12%)  0.0B/op   5.35× slower
+  SSE2   3.22M (310.39ns) (± 0.18%)  0.0B/op   5.41× slower
+ SSE41   3.23M (309.54ns) (± 0.17%)  0.0B/op   5.40× slower
+  AVX2  17.32M ( 57.75ns) (± 0.33%)  0.0B/op   1.01× slower
+AVX512  17.43M ( 57.36ns) (± 0.69%)  0.0B/op        fastest
+
+i8/cmp_gt_mask	mask = a > b
+Scalar   4.83M (206.85ns) (± 0.20%)  0.0B/op   1.00× slower
+  SSE2   4.84M (206.42ns) (± 0.25%)  0.0B/op        fastest
+ SSE41   4.84M (206.65ns) (± 0.20%)  0.0B/op   1.00× slower
+  AVX2 675.60k (  1.48µs) (± 0.38%)  0.0B/op   7.17× slower
+AVX512 673.51k (  1.48µs) (± 0.47%)  0.0B/op   7.19× slower
+
+i8/cmp_le	mask = a <= b
+Scalar   3.27M (305.50ns) (± 0.48%)  0.0B/op   5.27× slower
+  SSE2   3.22M (310.72ns) (± 0.82%)  0.0B/op   5.36× slower
+ SSE41   3.20M (312.42ns) (± 0.38%)  0.0B/op   5.39× slower
+  AVX2  17.22M ( 58.06ns) (± 0.51%)  0.0B/op   1.00× slower
+AVX512  17.25M ( 57.97ns) (± 0.37%)  0.0B/op        fastest
+
+i8/cmp_lt	mask = a < b
+Scalar   4.80M (208.49ns) (± 1.07%)  0.0B/op   3.92× slower
+  SSE2   4.76M (210.03ns) (± 0.35%)  0.0B/op   3.95× slower
+ SSE41   4.79M (208.84ns) (± 0.33%)  0.0B/op   3.93× slower
+  AVX2  18.82M ( 53.14ns) (± 0.93%)  0.0B/op        fastest
+AVX512  18.76M ( 53.29ns) (± 0.47%)  0.0B/op   1.00× slower
+
+i8/cmp_ne	mask = a != b
+Scalar   3.27M (305.89ns) (± 0.41%)  0.0B/op   2.88× slower
+  SSE2   3.22M (310.49ns) (± 0.09%)  0.0B/op   2.93× slower
+ SSE41   3.23M (309.93ns) (± 0.32%)  0.0B/op   2.92× slower
+  AVX2   9.42M (106.12ns) (± 0.79%)  0.0B/op        fastest
+AVX512   9.42M (106.13ns) (± 0.88%)  0.0B/op   1.00× slower
+
+i8/max_elem	dst[i] = max(a[i], b[i])
+Scalar   2.31M (433.50ns) (± 0.25%)  0.0B/op  13.38× slower
+  SSE2   2.32M (431.94ns) (± 0.10%)  0.0B/op  13.33× slower
+ SSE41   4.71M (212.15ns) (± 0.25%)  0.0B/op   6.55× slower
+  AVX2   9.39M (106.52ns) (± 0.44%)  0.0B/op   3.29× slower
+AVX512  30.86M ( 32.41ns) (± 0.77%)  0.0B/op        fastest
+
+i8/max_reduce	max(a)
+Scalar   2.35M (425.11ns) (± 0.95%)  0.0B/op   2.16× slower
+  SSE2   2.33M (428.55ns) (± 0.81%)  0.0B/op   2.17× slower
+ SSE41   2.33M (429.22ns) (± 0.26%)  0.0B/op   2.18× slower
+  AVX2   3.38M (295.69ns) (± 0.49%)  0.0B/op   1.50× slower
+AVX512   5.07M (197.20ns) (± 0.53%)  0.0B/op        fastest
+
+i8/min_elem	dst[i] = min(a[i], b[i])
+Scalar   2.34M (427.53ns) (± 0.11%)  0.0B/op  13.12× slower
+  SSE2   2.35M (425.91ns) (± 0.05%)  0.0B/op  13.07× slower
+ SSE41   4.69M (213.22ns) (± 0.31%)  0.0B/op   6.55× slower
+  AVX2  13.94M ( 71.73ns) (± 0.57%)  0.0B/op   2.20× slower
+AVX512  30.70M ( 32.58ns) (± 0.59%)  0.0B/op        fastest
+
+i8/min_reduce	min(a)
+Scalar   2.56M (390.47ns) (± 0.42%)  0.0B/op   1.98× slower
+  SSE2   2.56M (390.23ns) (± 0.05%)  0.0B/op   1.97× slower
+ SSE41   2.56M (390.33ns) (± 0.17%)  0.0B/op   1.97× slower
+  AVX2   3.38M (295.46ns) (± 0.28%)  0.0B/op   1.49× slower
+AVX512   5.06M (197.70ns) (± 0.59%)  0.0B/op        fastest
+
+i8/mul	dst = a * b
+Scalar   5.91M (169.28ns) (± 0.51%)  0.0B/op   1.00× slower
+  SSE2   5.92M (168.96ns) (± 0.40%)  0.0B/op        fastest
+ SSE41   5.90M (169.39ns) (± 0.74%)  0.0B/op   1.00× slower
+  AVX2   5.90M (169.64ns) (± 0.87%)  0.0B/op   1.00× slower
+AVX512   5.88M (170.00ns) (± 1.10%)  0.0B/op   1.01× slower
+
+i8/neg	dst = -a
+Scalar   6.08M (164.36ns) (± 0.18%)  0.0B/op   5.32× slower
+  SSE2   4.75M (210.51ns) (± 0.11%)  0.0B/op   6.81× slower
+ SSE41   4.74M (210.77ns) (± 0.22%)  0.0B/op   6.82× slower
+  AVX2  18.61M ( 53.73ns) (± 0.85%)  0.0B/op   1.74× slower
+AVX512  32.37M ( 30.89ns) (± 0.40%)  0.0B/op        fastest
+
+i8/sub	dst = a - b
+Scalar   4.71M (212.41ns) (± 0.36%)  0.0B/op   6.16× slower
+  SSE2   4.73M (211.44ns) (± 1.07%)  0.0B/op   6.13× slower
+ SSE41   4.70M (212.73ns) (± 0.32%)  0.0B/op   6.17× slower
+  AVX2  18.43M ( 54.27ns) (± 0.38%)  0.0B/op   1.57× slower
+AVX512  29.01M ( 34.47ns) (± 0.49%)  0.0B/op        fastest
+
+i8/sum	sum(a)
+Scalar  23.04M ( 43.40ns) (± 0.89%)  0.0B/op   1.00× slower
+  SSE2  23.08M ( 43.34ns) (± 0.84%)  0.0B/op        fastest
+ SSE41  22.96M ( 43.56ns) (± 1.21%)  0.0B/op   1.01× slower
+  AVX2  22.99M ( 43.49ns) (± 1.30%)  0.0B/op   1.00× slower
+AVX512  23.00M ( 43.47ns) (± 0.66%)  0.0B/op   1.00× slower
+
+i8/xor	dst = a ^ b
+Scalar   4.72M (211.99ns) (± 0.07%)  0.0B/op   6.13× slower
+  SSE2   4.71M (212.52ns) (± 0.39%)  0.0B/op   6.15× slower
+ SSE41   4.72M (212.07ns) (± 0.26%)  0.0B/op   6.13× slower
+  AVX2  18.44M ( 54.24ns) (± 1.14%)  0.0B/op   1.57× slower
+AVX512  28.92M ( 34.58ns) (± 1.00%)  0.0B/op        fastest
+
+u16/abs	dst = abs(a)
+Scalar   8.98M (111.30ns) (± 0.61%)  0.0B/op   1.85× slower
+  SSE2   8.86M (112.83ns) (± 0.85%)  0.0B/op   1.88× slower
+ SSE41   8.92M (112.10ns) (± 0.55%)  0.0B/op   1.87× slower
+  AVX2   8.86M (112.84ns) (± 0.30%)  0.0B/op   1.88× slower
+AVX512  16.65M ( 60.05ns) (± 0.92%)  0.0B/op        fastest
+
+u16/add	dst = a + b
+Scalar   2.33M (428.66ns) (± 0.13%)  0.0B/op   6.81× slower
+  SSE2   2.36M (423.54ns) (± 0.62%)  0.0B/op   6.73× slower
+ SSE41   2.36M (424.25ns) (± 0.21%)  0.0B/op   6.74× slower
+  AVX2   8.77M (114.01ns) (± 0.30%)  0.0B/op   1.81× slower
+AVX512  15.89M ( 62.94ns) (± 0.39%)  0.0B/op        fastest
+
+u16/bitwise_and	dst = a & b
+Scalar   2.33M (428.82ns) (± 0.64%)  0.0B/op   6.84× slower
+  SSE2   2.36M (423.67ns) (± 0.26%)  0.0B/op   6.76× slower
+ SSE41   2.35M (424.99ns) (± 0.08%)  0.0B/op   6.78× slower
+  AVX2   8.66M (115.47ns) (± 0.65%)  0.0B/op   1.84× slower
+AVX512  15.96M ( 62.67ns) (± 0.35%)  0.0B/op        fastest
+
+u16/bitwise_or	dst = a | b
+Scalar   2.35M (425.12ns) (± 0.12%)  0.0B/op   6.79× slower
+  SSE2   2.37M (422.20ns) (± 0.24%)  0.0B/op   6.74× slower
+ SSE41   2.36M (424.29ns) (± 0.52%)  0.0B/op   6.78× slower
+  AVX2   8.67M (115.28ns) (± 1.00%)  0.0B/op   1.84× slower
+AVX512  15.97M ( 62.61ns) (± 0.44%)  0.0B/op        fastest
+
+u16/bswap	byte swap
+Scalar   2.02M (495.56ns) (± 0.49%)  0.0B/op   6.01× slower
+  SSE2   2.03M (493.66ns) (± 0.11%)  0.0B/op   5.99× slower
+ SSE41   2.36M (424.63ns) (± 0.08%)  0.0B/op   5.15× slower
+  AVX2   8.61M (116.20ns) (± 2.08%)  0.0B/op   1.41× slower
+AVX512  12.13M ( 82.42ns) (± 0.47%)  0.0B/op        fastest
+
+u16/clamp	dst = clamp(a, lo, hi)
+Scalar   1.16M (864.33ns) (± 0.47%)  0.0B/op   7.14× slower
+  SSE2   1.17M (854.38ns) (± 0.03%)  0.0B/op   7.06× slower
+ SSE41   1.17M (854.54ns) (± 0.21%)  0.0B/op   7.06× slower
+  AVX2   1.17M (856.96ns) (± 0.21%)  0.0B/op   7.08× slower
+AVX512   8.26M (121.07ns) (± 0.71%)  0.0B/op        fastest
+
+u16/cmp_eq	mask = a == b
+Scalar   7.41M (134.89ns) (± 2.32%)  0.0B/op        fastest
+  SSE2   7.16M (139.60ns) (± 1.54%)  0.0B/op   1.03× slower
+ SSE41   7.38M (135.58ns) (± 2.73%)  0.0B/op   1.01× slower
+  AVX2   7.33M (136.44ns) (± 2.15%)  0.0B/op   1.01× slower
+AVX512   7.30M (136.98ns) (± 2.95%)  0.0B/op   1.02× slower
+
+u16/cmp_ge	mask = a >= b
+Scalar   6.66M (150.09ns) (± 0.48%)  0.0B/op   1.00× slower
+  SSE2   6.67M (150.00ns) (± 0.43%)  0.0B/op   1.00× slower
+ SSE41   6.66M (150.08ns) (± 0.44%)  0.0B/op   1.00× slower
+  AVX2   6.67M (150.00ns) (± 0.19%)  0.0B/op   1.00× slower
+AVX512   6.68M (149.63ns) (± 0.62%)  0.0B/op        fastest
+
+u16/cmp_gt_mask	mask = a > b
+Scalar   4.50M (222.32ns) (± 0.37%)  0.0B/op   1.00× slower
+  SSE2   4.52M (221.39ns) (± 0.17%)  0.0B/op        fastest
+ SSE41   4.48M (223.01ns) (± 1.08%)  0.0B/op   1.01× slower
+  AVX2   4.49M (222.55ns) (± 0.66%)  0.0B/op   1.01× slower
+AVX512   4.51M (221.82ns) (± 0.39%)  0.0B/op   1.00× slower
+
+u16/cmp_le	mask = a <= b
+Scalar   6.67M (150.00ns) (± 0.43%)  0.0B/op   1.01× slower
+  SSE2   6.62M (151.15ns) (± 0.63%)  0.0B/op   1.01× slower
+ SSE41   6.64M (150.55ns) (± 0.68%)  0.0B/op   1.01× slower
+  AVX2   6.71M (149.07ns) (± 0.55%)  0.0B/op        fastest
+AVX512   6.61M (151.35ns) (± 0.75%)  0.0B/op   1.02× slower
+
+u16/cmp_lt	mask = a < b
+Scalar   4.47M (223.69ns) (± 0.60%)  0.0B/op   1.01× slower
+  SSE2   4.46M (224.10ns) (± 0.44%)  0.0B/op   1.01× slower
+ SSE41   4.50M (222.08ns) (± 0.64%)  0.0B/op   1.00× slower
+  AVX2   4.49M (222.68ns) (± 0.57%)  0.0B/op   1.01× slower
+AVX512   4.52M (221.00ns) (± 0.36%)  0.0B/op        fastest
+
+u16/cmp_ne	mask = a != b
+Scalar   6.74M (148.40ns) (± 0.28%)  0.0B/op   1.00× slower
+  SSE2   6.75M (148.20ns) (± 0.23%)  0.0B/op   1.00× slower
+ SSE41   6.71M (148.94ns) (± 0.94%)  0.0B/op   1.01× slower
+  AVX2   6.76M (147.86ns) (± 0.14%)  0.0B/op        fastest
+AVX512   6.75M (148.04ns) (± 0.31%)  0.0B/op   1.00× slower
+
+u16/max_elem	dst[i] = max(a[i], b[i])
+Scalar   6.73M (148.57ns) (± 0.35%)  0.0B/op   1.00× slower
+  SSE2   6.73M (148.52ns) (± 0.61%)  0.0B/op        fastest
+ SSE41   6.56M (152.52ns) (± 1.64%)  0.0B/op   1.03× slower
+  AVX2   6.67M (149.86ns) (± 1.09%)  0.0B/op   1.01× slower
+AVX512   6.73M (148.59ns) (± 0.62%)  0.0B/op   1.00× slower
+
+u16/max_reduce	max(a)
+Scalar   4.24M (236.06ns) (± 0.47%)  0.0B/op   1.00× slower
+  SSE2   4.23M (236.13ns) (± 0.67%)  0.0B/op   1.00× slower
+ SSE41   4.23M (236.32ns) (± 0.54%)  0.0B/op   1.00× slower
+  AVX2   4.25M (235.43ns) (± 0.15%)  0.0B/op        fastest
+AVX512   2.89M (346.36ns) (± 0.48%)  0.0B/op   1.47× slower
+
+u16/min_elem	dst[i] = min(a[i], b[i])
+Scalar   4.52M (221.38ns) (± 0.59%)  0.0B/op        fastest
+  SSE2   4.51M (221.81ns) (± 0.74%)  0.0B/op   1.00× slower
+ SSE41   4.47M (223.48ns) (± 0.97%)  0.0B/op   1.01× slower
+  AVX2   4.48M (222.99ns) (± 0.67%)  0.0B/op   1.01× slower
+AVX512   4.48M (223.15ns) (± 0.87%)  0.0B/op   1.01× slower
+
+u16/min_reduce	min(a)
+Scalar   2.28M (439.24ns) (± 0.28%)  0.0B/op   1.26× slower
+  SSE2   2.28M (438.63ns) (± 0.13%)  0.0B/op   1.26× slower
+ SSE41   2.27M (439.71ns) (± 0.32%)  0.0B/op   1.26× slower
+  AVX2   2.27M (440.57ns) (± 0.47%)  0.0B/op   1.26× slower
+AVX512   2.86M (349.44ns) (± 0.37%)  0.0B/op        fastest
+
+u16/mul	dst = a * b
+Scalar   1.94M (516.79ns) (± 0.14%)  0.0B/op   4.88× slower
+  SSE2   1.91M (522.58ns) (± 0.34%)  0.0B/op   4.94× slower
+ SSE41   1.90M (525.93ns) (± 0.26%)  0.0B/op   4.97× slower
+  AVX2   8.77M (113.99ns) (± 0.32%)  0.0B/op   1.08× slower
+AVX512   9.45M (105.82ns) (± 0.50%)  0.0B/op        fastest
+
+u16/sub	dst = a - b
+Scalar   2.36M (424.43ns) (± 0.33%)  0.0B/op   6.77× slower
+  SSE2   2.37M (422.66ns) (± 0.25%)  0.0B/op   6.74× slower
+ SSE41   2.35M (425.86ns) (± 0.09%)  0.0B/op   6.79× slower
+  AVX2   8.70M (114.94ns) (± 0.26%)  0.0B/op   1.83× slower
+AVX512  15.95M ( 62.70ns) (± 0.26%)  0.0B/op        fastest
+
+u16/sum	sum(a)
+Scalar  10.86M ( 92.08ns) (± 0.56%)  0.0B/op   1.01× slower
+  SSE2  10.96M ( 91.20ns) (± 0.22%)  0.0B/op        fastest
+ SSE41  10.86M ( 92.11ns) (± 1.15%)  0.0B/op   1.01× slower
+  AVX2  10.92M ( 91.61ns) (± 0.81%)  0.0B/op   1.00× slower
+AVX512  10.88M ( 91.89ns) (± 0.39%)  0.0B/op   1.01× slower
+
+u16/xor	dst = a ^ b
+Scalar   2.32M (430.19ns) (± 0.36%)  0.0B/op   6.91× slower
+  SSE2   2.35M (425.83ns) (± 0.44%)  0.0B/op   6.84× slower
+ SSE41   2.36M (423.85ns) (± 0.15%)  0.0B/op   6.80× slower
+  AVX2   8.67M (115.39ns) (± 0.51%)  0.0B/op   1.85× slower
+AVX512  16.05M ( 62.29ns) (± 1.03%)  0.0B/op        fastest
+
+u32/abs	dst = abs(a)
+Scalar   4.52M (221.42ns) (± 0.41%)  0.0B/op   1.85× slower
+  SSE2   4.48M (223.39ns) (± 0.63%)  0.0B/op   1.87× slower
+ SSE41   4.47M (223.65ns) (± 0.58%)  0.0B/op   1.87× slower
+  AVX2   4.45M (224.67ns) (± 0.96%)  0.0B/op   1.88× slower
+AVX512   8.36M (119.65ns) (± 0.61%)  0.0B/op        fastest
+
+u32/add	dst = a + b
+Scalar   1.16M (862.58ns) (± 0.03%)  0.0B/op   6.17× slower
+  SSE2   1.16M (860.47ns) (± 1.30%)  0.0B/op   6.16× slower
+ SSE41   1.17M (853.84ns) (± 0.63%)  0.0B/op   6.11× slower
+  AVX2   4.39M (227.66ns) (± 0.73%)  0.0B/op   1.63× slower
+AVX512   7.16M (139.74ns) (± 0.88%)  0.0B/op        fastest
+
+u32/bitwise_and	dst = a & b
+Scalar   1.17M (855.66ns) (± 0.28%)  0.0B/op   6.24× slower
+  SSE2   1.17M (855.55ns) (± 0.04%)  0.0B/op   6.24× slower
+ SSE41   1.17M (855.03ns) (± 0.09%)  0.0B/op   6.23× slower
+  AVX2   3.06M (326.40ns) (± 0.81%)  0.0B/op   2.38× slower
+AVX512   7.29M (137.15ns) (± 0.48%)  0.0B/op        fastest
+
+u32/bitwise_or	dst = a | b
+Scalar   1.16M (862.68ns) (± 0.03%)  0.0B/op   3.94× slower
+  SSE2   1.17M (851.85ns) (± 0.06%)  0.0B/op   3.89× slower
+ SSE41   1.17M (852.40ns) (± 0.13%)  0.0B/op   3.89× slower
+  AVX2   4.38M (228.51ns) (± 1.36%)  0.0B/op   1.04× slower
+AVX512   4.57M (218.89ns) (± 0.65%)  0.0B/op        fastest
+
+u32/bswap	byte swap
+Scalar 564.17k (  1.77µs) (± 0.12%)  0.0B/op   8.15× slower
+  SSE2 565.84k (  1.77µs) (± 0.04%)  0.0B/op   8.13× slower
+ SSE41   1.19M (841.71ns) (± 0.12%)  0.0B/op   3.87× slower
+  AVX2   3.08M (324.55ns) (± 0.22%)  0.0B/op   1.49× slower
+AVX512   4.60M (217.49ns) (± 0.28%)  0.0B/op        fastest
+
+u32/clamp	dst = clamp(a, lo, hi)
+Scalar 481.61k (  2.08µs) (± 0.04%)  0.0B/op   8.83× slower
+  SSE2 478.51k (  2.09µs) (± 0.00%)  0.0B/op   8.89× slower
+ SSE41 480.71k (  2.08µs) (± 0.00%)  0.0B/op   8.85× slower
+  AVX2   4.04M (247.39ns) (± 0.60%)  0.0B/op   1.05× slower
+AVX512   4.25M (235.13ns) (± 0.19%)  0.0B/op        fastest
+
+u32/cmp_eq	mask = a == b
+Scalar   4.10M (244.13ns) (± 0.69%)  0.0B/op   1.01× slower
+  SSE2   4.10M (243.79ns) (± 0.65%)  0.0B/op   1.01× slower
+ SSE41   4.10M (244.17ns) (± 0.81%)  0.0B/op   1.01× slower
+  AVX2   4.11M (243.55ns) (± 0.23%)  0.0B/op   1.01× slower
+AVX512   4.13M (242.25ns) (± 0.80%)  0.0B/op        fastest
+
+u32/cmp_ge	mask = a >= b
+Scalar   2.31M (432.54ns) (± 0.61%)  0.0B/op        fastest
+  SSE2   2.30M (434.28ns) (± 0.51%)  0.0B/op   1.00× slower
+ SSE41   2.29M (436.05ns) (± 0.88%)  0.0B/op   1.01× slower
+  AVX2   2.30M (434.58ns) (± 0.78%)  0.0B/op   1.00× slower
+AVX512   2.29M (436.57ns) (± 0.47%)  0.0B/op   1.01× slower
+
+u32/cmp_gt_mask	mask = a > b
+Scalar 479.21k (  2.09µs) (± 0.00%)  0.0B/op   1.89× slower
+  SSE2 480.00k (  2.08µs) (± 0.00%)  0.0B/op   1.88× slower
+ SSE41 480.04k (  2.08µs) (± 0.00%)  0.0B/op   1.88× slower
+  AVX2 479.84k (  2.08µs) (± 0.00%)  0.0B/op   1.88× slower
+AVX512 904.41k (  1.11µs) (± 0.33%)  0.0B/op        fastest
+
+u32/cmp_le	mask = a <= b
+Scalar   2.67M (374.93ns) (± 0.57%)  0.0B/op        fastest
+  SSE2   2.64M (378.21ns) (± 0.51%)  0.0B/op   1.01× slower
+ SSE41   2.61M (382.94ns) (± 1.99%)  0.0B/op   1.02× slower
+  AVX2   2.64M (378.50ns) (± 0.65%)  0.0B/op   1.01× slower
+AVX512   2.65M (376.82ns) (± 0.32%)  0.0B/op   1.01× slower
+
+u32/cmp_lt	mask = a < b
+Scalar   2.99M (333.91ns) (± 0.42%)  0.0B/op   1.00× slower
+  SSE2   2.98M (335.21ns) (± 0.34%)  0.0B/op   1.00× slower
+ SSE41   2.98M (335.56ns) (± 0.56%)  0.0B/op   1.00× slower
+  AVX2   2.99M (333.90ns) (± 0.30%)  0.0B/op        fastest
+AVX512   2.98M (335.87ns) (± 0.73%)  0.0B/op   1.01× slower
+
+u32/cmp_ne	mask = a != b
+Scalar   2.31M (432.82ns) (± 0.49%)  0.0B/op        fastest
+  SSE2   2.30M (435.48ns) (± 0.52%)  0.0B/op   1.01× slower
+ SSE41   2.30M (434.82ns) (± 0.66%)  0.0B/op   1.00× slower
+  AVX2   2.30M (434.17ns) (± 0.55%)  0.0B/op   1.00× slower
+AVX512   2.31M (433.29ns) (± 0.55%)  0.0B/op   1.00× slower
+
+u32/max_elem	dst[i] = max(a[i], b[i])
+Scalar   2.17M (461.11ns) (± 0.73%)  0.0B/op   1.01× slower
+  SSE2   2.17M (461.37ns) (± 0.91%)  0.0B/op   1.01× slower
+ SSE41   2.16M (462.91ns) (± 1.73%)  0.0B/op   1.01× slower
+  AVX2   2.18M (459.57ns) (± 1.49%)  0.0B/op   1.01× slower
+AVX512   2.19M (456.77ns) (± 1.26%)  0.0B/op        fastest
+
+u32/max_reduce	max(a)
+Scalar 506.70k (  1.97µs) (± 0.56%)  0.0B/op   2.88× slower
+  SSE2 510.07k (  1.96µs) (± 0.09%)  0.0B/op   2.86× slower
+ SSE41 379.04k (  2.64µs) (± 0.78%)  0.0B/op   3.85× slower
+  AVX2 878.66k (  1.14µs) (± 1.80%)  0.0B/op   1.66× slower
+AVX512   1.46M (684.53ns) (± 0.82%)  0.0B/op        fastest
+
+u32/min_elem	dst[i] = min(a[i], b[i])
+Scalar   2.17M (461.43ns) (± 1.42%)  0.0B/op   1.01× slower
+  SSE2   2.13M (469.54ns) (± 1.10%)  0.0B/op   1.03× slower
+ SSE41   2.15M (464.89ns) (± 1.07%)  0.0B/op   1.02× slower
+  AVX2   2.20M (455.32ns) (± 0.59%)  0.0B/op        fastest
+AVX512   2.11M (473.80ns) (± 1.36%)  0.0B/op   1.04× slower
+
+u32/min_reduce	min(a)
+Scalar 463.42k (  2.16µs) (± 0.01%)  0.0B/op   3.17× slower
+  SSE2 462.88k (  2.16µs) (± 0.30%)  0.0B/op   3.17× slower
+ SSE41 378.82k (  2.64µs) (± 0.58%)  0.0B/op   3.87× slower
+  AVX2 885.58k (  1.13µs) (± 0.37%)  0.0B/op   1.66× slower
+AVX512   1.47M (681.39ns) (± 0.40%)  0.0B/op        fastest
+
+u32/mul	dst = a * b
+Scalar 658.07k (  1.52µs) (± 1.06%)  0.0B/op  10.92× slower
+  SSE2 661.55k (  1.51µs) (± 0.91%)  0.0B/op  10.87× slower
+ SSE41 954.79k (  1.05µs) (± 0.29%)  0.0B/op   7.53× slower
+  AVX2   4.40M (227.50ns) (± 0.31%)  0.0B/op   1.64× slower
+AVX512   7.19M (139.10ns) (± 1.14%)  0.0B/op        fastest
+
+u32/sub	dst = a - b
+Scalar   1.18M (849.39ns) (± 0.21%)  0.0B/op   6.12× slower
+  SSE2   1.18M (845.64ns) (± 0.22%)  0.0B/op   6.09× slower
+ SSE41   1.18M (846.63ns) (± 0.28%)  0.0B/op   6.10× slower
+  AVX2   4.32M (231.31ns) (± 0.44%)  0.0B/op   1.67× slower
+AVX512   7.20M (138.85ns) (± 0.97%)  0.0B/op        fastest
+
+u32/sum	sum(a)
+Scalar   5.42M (184.44ns) (± 0.85%)  0.0B/op   1.01× slower
+  SSE2   5.44M (183.86ns) (± 1.58%)  0.0B/op   1.01× slower
+ SSE41   5.46M (183.24ns) (± 2.04%)  0.0B/op   1.01× slower
+  AVX2   5.50M (181.92ns) (± 0.88%)  0.0B/op        fastest
+AVX512   5.47M (182.86ns) (± 0.87%)  0.0B/op   1.01× slower
+
+u32/xor	dst = a ^ b
+Scalar   1.17M (857.34ns) (± 0.15%)  0.0B/op   6.28× slower
+  SSE2   1.18M (850.96ns) (± 0.48%)  0.0B/op   6.23× slower
+ SSE41   1.17M (854.57ns) (± 0.70%)  0.0B/op   6.26× slower
+  AVX2   3.08M (324.45ns) (± 0.17%)  0.0B/op   2.38× slower
+AVX512   7.32M (136.56ns) (± 0.82%)  0.0B/op        fastest
+
+u64/abs	dst = abs(a)
+Scalar   2.18M (458.87ns) (± 0.19%)  0.0B/op   1.80× slower
+  SSE2   2.15M (464.80ns) (± 0.37%)  0.0B/op   1.83× slower
+ SSE41   2.16M (463.34ns) (± 0.14%)  0.0B/op   1.82× slower
+  AVX2   2.16M (463.91ns) (± 0.31%)  0.0B/op   1.82× slower
+AVX512   3.93M (254.29ns) (± 1.89%)  0.0B/op        fastest
+
+u64/add	dst = a + b
+Scalar 762.69k (  1.31µs) (± 0.45%)  0.0B/op   2.93× slower
+  SSE2 763.28k (  1.31µs) (± 0.37%)  0.0B/op   2.93× slower
+ SSE41 763.13k (  1.31µs) (± 0.34%)  0.0B/op   2.93× slower
+  AVX2   2.13M (468.89ns) (± 0.72%)  0.0B/op   1.05× slower
+AVX512   2.23M (447.51ns) (± 0.39%)  0.0B/op        fastest
+
+u64/bitwise_and	dst = a & b
+Scalar 761.86k (  1.31µs) (± 0.75%)  0.0B/op   2.94× slower
+  SSE2 761.34k (  1.31µs) (± 0.53%)  0.0B/op   2.94× slower
+ SSE41 762.96k (  1.31µs) (± 0.57%)  0.0B/op   2.93× slower
+  AVX2   2.16M (464.03ns) (± 0.38%)  0.0B/op   1.04× slower
+AVX512   2.24M (446.91ns) (± 0.48%)  0.0B/op        fastest
+
+u64/bitwise_or	dst = a | b
+Scalar 763.95k (  1.31µs) (± 0.17%)  0.0B/op   2.92× slower
+  SSE2 762.61k (  1.31µs) (± 0.47%)  0.0B/op   2.92× slower
+ SSE41 763.94k (  1.31µs) (± 0.47%)  0.0B/op   2.92× slower
+  AVX2   2.14M (468.06ns) (± 0.67%)  0.0B/op   1.04× slower
+AVX512   2.23M (448.38ns) (± 0.46%)  0.0B/op        fastest
+
+u64/bswap	byte swap
+Scalar 225.75k (  4.43µs) (± 0.17%)  0.0B/op  10.27× slower
+  SSE2 226.89k (  4.41µs) (± 0.09%)  0.0B/op  10.21× slower
+ SSE41 587.06k (  1.70µs) (± 0.48%)  0.0B/op   3.95× slower
+  AVX2   2.21M (452.65ns) (± 1.29%)  0.0B/op   1.05× slower
+AVX512   2.32M (431.53ns) (± 0.42%)  0.0B/op        fastest
+
+u64/clamp	dst = clamp(a, lo, hi)
+Scalar 714.32k (  1.40µs) (± 0.80%)  0.0B/op   1.01× slower
+  SSE2 719.59k (  1.39µs) (± 0.75%)  0.0B/op   1.00× slower
+ SSE41 720.93k (  1.39µs) (± 0.59%)  0.0B/op        fastest
+  AVX2 720.81k (  1.39µs) (± 0.77%)  0.0B/op   1.00× slower
+AVX512 719.41k (  1.39µs) (± 0.86%)  0.0B/op   1.00× slower
+
+u64/cmp_eq	mask = a == b
+Scalar 559.18k (  1.79µs) (± 0.30%)  0.0B/op   1.01× slower
+  SSE2 566.78k (  1.76µs) (± 0.11%)  0.0B/op        fastest
+ SSE41 564.85k (  1.77µs) (± 0.99%)  0.0B/op   1.00× slower
+  AVX2 560.42k (  1.78µs) (± 1.19%)  0.0B/op   1.01× slower
+AVX512 564.32k (  1.77µs) (± 0.35%)  0.0B/op   1.00× slower
+
+u64/cmp_ge	mask = a >= b
+Scalar 579.16k (  1.73µs) (± 0.50%)  0.0B/op        fastest
+  SSE2 578.18k (  1.73µs) (± 0.41%)  0.0B/op   1.00× slower
+ SSE41 578.24k (  1.73µs) (± 0.35%)  0.0B/op   1.00× slower
+  AVX2 578.82k (  1.73µs) (± 0.14%)  0.0B/op   1.00× slower
+AVX512 577.81k (  1.73µs) (± 0.48%)  0.0B/op   1.00× slower
+
+u64/cmp_gt_mask	mask = a > b
+Scalar 599.20k (  1.67µs) (± 1.60%)  0.0B/op   1.01× slower
+  SSE2 603.41k (  1.66µs) (± 0.85%)  0.0B/op   1.00× slower
+ SSE41 604.24k (  1.65µs) (± 0.55%)  0.0B/op   1.00× slower
+  AVX2 605.51k (  1.65µs) (± 0.37%)  0.0B/op        fastest
+AVX512 603.43k (  1.66µs) (± 0.40%)  0.0B/op   1.00× slower
+
+u64/cmp_le	mask = a <= b
+Scalar 616.17k (  1.62µs) (± 0.37%)  0.0B/op   1.01× slower
+  SSE2 618.72k (  1.62µs) (± 0.46%)  0.0B/op   1.00× slower
+ SSE41 618.92k (  1.62µs) (± 0.80%)  0.0B/op   1.00× slower
+  AVX2 618.15k (  1.62µs) (± 0.47%)  0.0B/op   1.00× slower
+AVX512 620.14k (  1.61µs) (± 0.23%)  0.0B/op        fastest
+
+u64/cmp_lt	mask = a < b
+Scalar 617.95k (  1.62µs) (± 0.42%)  0.0B/op   1.00× slower
+  SSE2 618.75k (  1.62µs) (± 0.61%)  0.0B/op   1.00× slower
+ SSE41 618.94k (  1.62µs) (± 0.62%)  0.0B/op        fastest
+  AVX2 618.65k (  1.62µs) (± 0.79%)  0.0B/op   1.00× slower
+AVX512 616.41k (  1.62µs) (± 0.48%)  0.0B/op   1.00× slower
+
+u64/cmp_ne	mask = a != b
+Scalar 563.88k (  1.77µs) (± 0.76%)  0.0B/op   1.00× slower
+  SSE2 566.43k (  1.77µs) (± 0.24%)  0.0B/op        fastest
+ SSE41 565.64k (  1.77µs) (± 0.31%)  0.0B/op   1.00× slower
+  AVX2 562.89k (  1.78µs) (± 0.92%)  0.0B/op   1.01× slower
+AVX512 564.47k (  1.77µs) (± 0.47%)  0.0B/op   1.00× slower
+
+u64/max_elem	dst[i] = max(a[i], b[i])
+Scalar 616.75k (  1.62µs) (± 0.41%)  0.0B/op        fastest
+  SSE2 614.61k (  1.63µs) (± 0.25%)  0.0B/op   1.00× slower
+ SSE41 608.10k (  1.64µs) (± 1.86%)  0.0B/op   1.01× slower
+  AVX2 610.47k (  1.64µs) (± 0.86%)  0.0B/op   1.01× slower
+AVX512 605.46k (  1.65µs) (± 2.00%)  0.0B/op   1.02× slower
+
+u64/max_reduce	max(a)
+Scalar 317.97k (  3.14µs) (± 0.99%)  0.0B/op   1.01× slower
+  SSE2 320.68k (  3.12µs) (± 0.94%)  0.0B/op   1.00× slower
+ SSE41 320.08k (  3.12µs) (± 0.96%)  0.0B/op   1.01× slower
+  AVX2 319.69k (  3.13µs) (± 0.74%)  0.0B/op   1.01× slower
+AVX512 322.15k (  3.10µs) (± 0.36%)  0.0B/op        fastest
+
+u64/min_elem	dst[i] = min(a[i], b[i])
+Scalar 706.34k (  1.42µs) (± 0.21%)  0.0B/op        fastest
+  SSE2 702.26k (  1.42µs) (± 0.66%)  0.0B/op   1.01× slower
+ SSE41 704.85k (  1.42µs) (± 0.95%)  0.0B/op   1.00× slower
+  AVX2 700.22k (  1.43µs) (± 1.56%)  0.0B/op   1.01× slower
+AVX512 679.67k (  1.47µs) (± 4.32%)  0.0B/op   1.04× slower
+
+u64/min_reduce	min(a)
+Scalar 319.92k (  3.13µs) (± 0.95%)  0.0B/op   1.01× slower
+  SSE2 321.86k (  3.11µs) (± 0.98%)  0.0B/op        fastest
+ SSE41 320.00k (  3.12µs) (± 0.90%)  0.0B/op   1.01× slower
+  AVX2 318.61k (  3.14µs) (± 0.56%)  0.0B/op   1.01× slower
+AVX512 316.05k (  3.16µs) (± 1.92%)  0.0B/op   1.02× slower
+
+u64/mul	dst = a * b
+Scalar 650.09k (  1.54µs) (± 0.58%)  0.0B/op   3.46× slower
+  SSE2 651.54k (  1.53µs) (± 0.56%)  0.0B/op   3.46× slower
+ SSE41 652.14k (  1.53µs) (± 0.26%)  0.0B/op   3.45× slower
+  AVX2 650.97k (  1.54µs) (± 0.26%)  0.0B/op   3.46× slower
+AVX512   2.25M (444.14ns) (± 0.40%)  0.0B/op        fastest
+
+u64/sub	dst = a - b
+Scalar 752.01k (  1.33µs) (± 0.79%)  0.0B/op   2.95× slower
+  SSE2 751.64k (  1.33µs) (± 0.69%)  0.0B/op   2.96× slower
+ SSE41 752.11k (  1.33µs) (± 0.33%)  0.0B/op   2.95× slower
+  AVX2   1.54M (648.26ns) (± 0.72%)  0.0B/op   1.44× slower
+AVX512   2.22M (450.05ns) (± 0.62%)  0.0B/op        fastest
+
+u64/sum	sum(a)
+Scalar   3.00M (332.79ns) (± 0.68%)  0.0B/op        fastest
+  SSE2   2.61M (382.92ns) (± 1.00%)  0.0B/op   1.15× slower
+ SSE41   2.62M (382.07ns) (± 1.57%)  0.0B/op   1.15× slower
+  AVX2   2.69M (371.41ns) (± 1.59%)  0.0B/op   1.12× slower
+AVX512   2.72M (367.98ns) (± 1.92%)  0.0B/op   1.11× slower
+
+u64/xor	dst = a ^ b
+Scalar 759.47k (  1.32µs) (± 0.28%)  0.0B/op   2.95× slower
+  SSE2 756.81k (  1.32µs) (± 0.66%)  0.0B/op   2.96× slower
+ SSE41 757.73k (  1.32µs) (± 0.44%)  0.0B/op   2.96× slower
+  AVX2   2.15M (465.90ns) (± 0.78%)  0.0B/op   1.04× slower
+AVX512   2.24M (445.89ns) (± 0.78%)  0.0B/op        fastest
+
+u8/abs	dst = abs(a)
+Scalar  18.05M ( 55.40ns) (± 0.89%)  0.0B/op   1.93× slower
+  SSE2  18.28M ( 54.71ns) (± 1.18%)  0.0B/op   1.91× slower
+ SSE41  18.58M ( 53.82ns) (± 0.44%)  0.0B/op   1.88× slower
+  AVX2  18.55M ( 53.90ns) (± 0.60%)  0.0B/op   1.88× slower
+AVX512  34.85M ( 28.70ns) (± 0.83%)  0.0B/op        fastest
+
+u8/add	dst = a + b
+Scalar   4.72M (211.71ns) (± 0.41%)  0.0B/op   3.93× slower
+  SSE2   4.73M (211.43ns) (± 0.16%)  0.0B/op   3.92× slower
+ SSE41   4.72M (211.91ns) (± 0.24%)  0.0B/op   3.93× slower
+  AVX2  18.46M ( 54.18ns) (± 0.93%)  0.0B/op   1.01× slower
+AVX512  18.56M ( 53.89ns) (± 0.43%)  0.0B/op        fastest
+
+u8/bitwise_and	dst = a & b
+Scalar   4.71M (212.23ns) (± 0.47%)  0.0B/op   6.04× slower
+  SSE2   4.72M (211.97ns) (± 0.73%)  0.0B/op   6.03× slower
+ SSE41   4.70M (212.57ns) (± 0.55%)  0.0B/op   6.05× slower
+  AVX2  12.42M ( 80.52ns) (± 0.47%)  0.0B/op   2.29× slower
+AVX512  28.45M ( 35.14ns) (± 1.03%)  0.0B/op        fastest
+
+u8/bitwise_or	dst = a | b
+Scalar   4.74M (211.08ns) (± 0.45%)  0.0B/op   6.05× slower
+  SSE2   4.73M (211.31ns) (± 0.45%)  0.0B/op   6.06× slower
+ SSE41   4.71M (212.12ns) (± 0.36%)  0.0B/op   6.08× slower
+  AVX2  17.68M ( 56.56ns) (± 0.76%)  0.0B/op   1.62× slower
+AVX512  28.66M ( 34.89ns) (± 0.53%)  0.0B/op        fastest
+
+u8/blend	dst = mask ? t : f
+Scalar 755.48k (  1.32µs) (± 1.51%)  0.0B/op   1.03× slower
+  SSE2 762.11k (  1.31µs) (± 1.18%)  0.0B/op   1.02× slower
+ SSE41 761.28k (  1.31µs) (± 0.66%)  0.0B/op   1.02× slower
+  AVX2 779.66k (  1.28µs) (± 0.55%)  0.0B/op        fastest
+AVX512 777.72k (  1.29µs) (± 0.55%)  0.0B/op   1.00× slower
+
+u8/clamp	dst = clamp(a, lo, hi)
+Scalar   6.30M (158.70ns) (± 0.32%)  0.0B/op   3.30× slower
+  SSE2   6.29M (159.05ns) (± 0.39%)  0.0B/op   3.30× slower
+ SSE41   6.26M (159.65ns) (± 0.07%)  0.0B/op   3.32× slower
+  AVX2   6.29M (159.00ns) (± 0.19%)  0.0B/op   3.30× slower
+AVX512  20.77M ( 48.14ns) (± 0.62%)  0.0B/op        fastest
+
+u8/cmp_eq	mask = a == b
+Scalar  12.69M ( 78.79ns) (± 0.56%)  0.0B/op        fastest
+  SSE2  12.66M ( 79.02ns) (± 0.47%)  0.0B/op   1.00× slower
+ SSE41  12.68M ( 78.85ns) (± 0.82%)  0.0B/op   1.00× slower
+  AVX2  12.64M ( 79.10ns) (± 0.50%)  0.0B/op   1.00× slower
+AVX512  12.69M ( 78.79ns) (± 0.62%)  0.0B/op   1.00× slower
+
+u8/cmp_ge	mask = a >= b
+Scalar  12.68M ( 78.85ns) (± 0.41%)  0.0B/op   1.01× slower
+  SSE2  12.65M ( 79.05ns) (± 0.52%)  0.0B/op   1.01× slower
+ SSE41  12.77M ( 78.30ns) (± 1.31%)  0.0B/op        fastest
+  AVX2  12.72M ( 78.62ns) (± 0.68%)  0.0B/op   1.00× slower
+AVX512  12.65M ( 79.03ns) (± 0.33%)  0.0B/op   1.01× slower
+
+u8/cmp_gt_mask	mask = a > b
+Scalar  11.52M ( 86.82ns) (± 0.26%)  0.0B/op   1.01× slower
+  SSE2  11.58M ( 86.38ns) (± 0.62%)  0.0B/op   1.01× slower
+ SSE41  11.65M ( 85.84ns) (± 0.51%)  0.0B/op        fastest
+  AVX2  11.31M ( 88.45ns) (± 1.44%)  0.0B/op   1.03× slower
+AVX512  11.45M ( 87.35ns) (± 1.76%)  0.0B/op   1.02× slower
+
+u8/cmp_le	mask = a <= b
+Scalar  11.49M ( 87.05ns) (± 2.66%)  0.0B/op   1.03× slower
+  SSE2  11.66M ( 85.76ns) (± 1.00%)  0.0B/op   1.01× slower
+ SSE41  11.54M ( 86.62ns) (± 1.89%)  0.0B/op   1.02× slower
+  AVX2  11.42M ( 87.59ns) (± 1.44%)  0.0B/op   1.03× slower
+AVX512  11.78M ( 84.92ns) (± 1.86%)  0.0B/op        fastest
+
+u8/cmp_lt	mask = a < b
+Scalar  11.50M ( 86.96ns) (± 0.65%)  0.0B/op   1.00× slower
+  SSE2  11.40M ( 87.73ns) (± 0.76%)  0.0B/op   1.01× slower
+ SSE41  11.46M ( 87.25ns) (± 0.42%)  0.0B/op   1.00× slower
+  AVX2  11.50M ( 86.98ns) (± 0.58%)  0.0B/op   1.00× slower
+AVX512  11.51M ( 86.85ns) (± 0.41%)  0.0B/op        fastest
+
+u8/cmp_ne	mask = a != b
+Scalar  11.74M ( 85.15ns) (± 2.41%)  0.0B/op   1.01× slower
+  SSE2  11.68M ( 85.58ns) (± 1.48%)  0.0B/op   1.01× slower
+ SSE41  11.73M ( 85.24ns) (± 1.45%)  0.0B/op   1.01× slower
+  AVX2  11.80M ( 84.72ns) (± 0.96%)  0.0B/op        fastest
+AVX512  11.75M ( 85.12ns) (± 0.87%)  0.0B/op   1.00× slower
+
+u8/copy	copy bytes
+Scalar  18.60M ( 53.76ns) (± 0.39%)  0.0B/op   1.85× slower
+  SSE2  18.65M ( 53.63ns) (± 0.61%)  0.0B/op   1.84× slower
+ SSE41  18.58M ( 53.81ns) (± 0.48%)  0.0B/op   1.85× slower
+  AVX2  18.07M ( 55.33ns) (± 0.67%)  0.0B/op   1.90× slower
+AVX512  34.37M ( 29.09ns) (± 0.98%)  0.0B/op        fastest
+
+u8/fill	fill bytes
+Scalar  65.58M ( 15.25ns) (± 1.12%)  0.0B/op   1.11× slower
+  SSE2  72.35M ( 13.82ns) (± 0.85%)  0.0B/op   1.00× slower
+ SSE41  72.22M ( 13.85ns) (± 0.24%)  0.0B/op   1.00× slower
+  AVX2  72.55M ( 13.78ns) (± 0.62%)  0.0B/op        fastest
+AVX512  72.08M ( 13.87ns) (± 0.78%)  0.0B/op   1.01× slower
+
+u8/max_elem	dst[i] = max(a[i], b[i])
+Scalar  12.17M ( 82.20ns) (± 3.26%)  0.0B/op   1.01× slower
+  SSE2  12.32M ( 81.15ns) (± 1.45%)  0.0B/op        fastest
+ SSE41  12.29M ( 81.38ns) (± 2.20%)  0.0B/op   1.00× slower
+  AVX2  12.28M ( 81.41ns) (± 3.29%)  0.0B/op   1.00× slower
+AVX512  12.24M ( 81.72ns) (± 2.48%)  0.0B/op   1.01× slower
+
+u8/max_reduce	max(a)
+Scalar  19.50M ( 51.27ns) (± 0.99%)  0.0B/op   1.02× slower
+  SSE2  19.97M ( 50.07ns) (± 0.67%)  0.0B/op        fastest
+ SSE41  19.81M ( 50.47ns) (± 0.99%)  0.0B/op   1.01× slower
+  AVX2  19.84M ( 50.40ns) (± 1.22%)  0.0B/op   1.01× slower
+AVX512  19.77M ( 50.57ns) (± 1.17%)  0.0B/op   1.01× slower
+
+u8/min_elem	dst[i] = min(a[i], b[i])
+Scalar  12.83M ( 77.92ns) (± 0.91%)  0.0B/op   1.00× slower
+  SSE2  12.84M ( 77.90ns) (± 0.66%)  0.0B/op        fastest
+ SSE41  12.79M ( 78.22ns) (± 0.44%)  0.0B/op   1.00× slower
+  AVX2  12.64M ( 79.14ns) (± 1.03%)  0.0B/op   1.02× slower
+AVX512  12.82M ( 78.03ns) (± 0.66%)  0.0B/op   1.00× slower
+
+u8/min_reduce	min(a)
+Scalar  20.02M ( 49.96ns) (± 0.68%)  0.0B/op   1.01× slower
+  SSE2  20.23M ( 49.44ns) (± 0.79%)  0.0B/op   1.00× slower
+ SSE41  20.07M ( 49.82ns) (± 0.52%)  0.0B/op   1.01× slower
+  AVX2  20.16M ( 49.61ns) (± 0.66%)  0.0B/op   1.00× slower
+AVX512  20.23M ( 49.43ns) (± 0.79%)  0.0B/op        fastest
+
+u8/mul	dst = a * b
+Scalar   5.95M (167.99ns) (± 0.45%)  0.0B/op        fastest
+  SSE2   5.92M (168.81ns) (± 0.60%)  0.0B/op   1.00× slower
+ SSE41   5.90M (169.57ns) (± 0.94%)  0.0B/op   1.01× slower
+  AVX2   5.91M (169.24ns) (± 0.55%)  0.0B/op   1.01× slower
+AVX512   5.90M (169.43ns) (± 0.90%)  0.0B/op   1.01× slower
+
+u8/popcount	total bits set
+Scalar 301.27k (  3.32µs) (± 1.08%)  0.0B/op   1.20× slower
+  SSE2 360.83k (  2.77µs) (± 0.57%)  0.0B/op        fastest
+ SSE41 359.09k (  2.78µs) (± 1.26%)  0.0B/op   1.00× slower
+  AVX2 359.43k (  2.78µs) (± 0.45%)  0.0B/op   1.00× slower
+AVX512 358.58k (  2.79µs) (± 0.33%)  0.0B/op   1.01× slower
+
+u8/sub	dst = a - b
+Scalar   4.77M (209.77ns) (± 0.04%)  0.0B/op   6.01× slower
+  SSE2   4.73M (211.52ns) (± 0.26%)  0.0B/op   6.06× slower
+ SSE41   4.74M (210.89ns) (± 0.30%)  0.0B/op   6.04× slower
+  AVX2  18.45M ( 54.21ns) (± 0.33%)  0.0B/op   1.55× slower
+AVX512  28.63M ( 34.93ns) (± 1.97%)  0.0B/op        fastest
+
+u8/sum	sum(a)
+Scalar  22.91M ( 43.66ns) (± 2.08%)  0.0B/op   1.01× slower
+  SSE2  23.17M ( 43.16ns) (± 0.33%)  0.0B/op        fastest
+ SSE41  23.10M ( 43.28ns) (± 0.57%)  0.0B/op   1.00× slower
+  AVX2  23.13M ( 43.24ns) (± 0.25%)  0.0B/op   1.00× slower
+AVX512  23.09M ( 43.30ns) (± 0.19%)  0.0B/op   1.00× slower
+
+u8/xor	dst = a ^ b
+Scalar   4.76M (210.22ns) (± 0.54%)  0.0B/op   5.98× slower
+  SSE2   4.76M (209.96ns) (± 0.35%)  0.0B/op   5.97× slower
+ SSE41   4.74M (210.75ns) (± 0.19%)  0.0B/op   5.99× slower
+  AVX2  18.38M ( 54.41ns) (± 1.25%)  0.0B/op   1.55× slower
+AVX512  28.43M ( 35.17ns) (± 1.75%)  0.0B/op        fastest
+
+u8/xor_block16	xor with 16-byte key
+Scalar 879.57k (  1.14µs) (± 0.39%)  0.0B/op  24.64× slower
+  SSE2   4.64M (215.32ns) (± 0.38%)  0.0B/op   4.67× slower
+ SSE41   4.65M (215.27ns) (± 0.29%)  0.0B/op   4.67× slower
+  AVX2  15.82M ( 63.21ns) (± 0.35%)  0.0B/op   1.37× slower
+AVX512  21.67M ( 46.14ns) (± 0.28%)  0.0B/op        fastest

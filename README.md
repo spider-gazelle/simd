@@ -56,6 +56,21 @@ simd.xor(u32_dst, u32_a, u32_b)  # Bitwise XOR
 simd.bswap(u32_dst, u32_a)       # Byte swap (endian conversion)
 ```
 
+## Performance
+
+AI is an example where you might need to transform data to feed into a neural network.
+
+```text
+f32/convert_u8_scale	UInt8 -> Float32 (scale)
+Scalar 739.86k (  1.35µs) (± 0.51%)  0.0B/op   8.76× slower
+  SSE2 739.97k (  1.35µs) (± 0.00%)  0.0B/op   8.76× slower
+ SSE41 740.11k (  1.35µs) (± 0.00%)  0.0B/op   8.76× slower
+  AVX2   3.95M (253.10ns) (± 0.68%)  0.0B/op   1.64× slower
+AVX512   6.48M (154.21ns) (± 1.41%)  0.0B/op        fastest
+```
+
+Optimal code paths can considerably speed up this processing.
+
 ### Available Operations
 
 #### Vector Math (Float32)

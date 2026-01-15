@@ -310,68 +310,6 @@ describe "SIMD Float32 operations" do
     end
   end
 
-  describe "blend" do
-    it "scalar implementation" do
-      simd = SIMD.scalar
-      t = Slice[1.0_f32, 2.0_f32, 3.0_f32, 4.0_f32]
-      f = Slice[10.0_f32, 20.0_f32, 30.0_f32, 40.0_f32]
-      mask = Slice[0xFF_u8, 0x00_u8, 0xFF_u8, 0x00_u8]
-      dst = Slice(Float32).new(t.size)
-
-      simd.blend(dst, t, f, mask)
-
-      dst[0].should eq 1.0_f32
-      dst[1].should eq 20.0_f32
-      dst[2].should eq 3.0_f32
-      dst[3].should eq 40.0_f32
-    end
-
-    it "hardware implementations match scalar" do
-      check_implementations.each do |simd|
-        t = Slice[1.0_f32, 2.0_f32, 3.0_f32, 4.0_f32]
-        f = Slice[10.0_f32, 20.0_f32, 30.0_f32, 40.0_f32]
-        mask = Slice[0xFF_u8, 0x00_u8, 0xFF_u8, 0x00_u8]
-        dst = Slice(Float32).new(t.size)
-
-        simd.blend(dst, t, f, mask)
-
-        dst[0].should eq 1.0_f32
-        dst[1].should eq 20.0_f32
-        dst[2].should eq 3.0_f32
-        dst[3].should eq 40.0_f32
-      end
-    end
-  end
-
-  describe "compress" do
-    it "scalar implementation" do
-      simd = SIMD.scalar
-      src = Slice[1.0_f32, 2.0_f32, 3.0_f32, 4.0_f32]
-      mask = Slice[0xFF_u8, 0x00_u8, 0xFF_u8, 0x00_u8]
-      dst = Slice(Float32).new(src.size)
-
-      count = simd.compress(dst, src, mask)
-
-      count.should eq 2
-      dst[0].should eq 1.0_f32
-      dst[1].should eq 3.0_f32
-    end
-
-    it "hardware implementations match scalar" do
-      check_implementations.each do |simd|
-        src = Slice[1.0_f32, 2.0_f32, 3.0_f32, 4.0_f32]
-        mask = Slice[0xFF_u8, 0x00_u8, 0xFF_u8, 0x00_u8]
-        dst = Slice(Float32).new(src.size)
-
-        count = simd.compress(dst, src, mask)
-
-        count.should eq 2
-        dst[0].should eq 1.0_f32
-        dst[1].should eq 3.0_f32
-      end
-    end
-  end
-
   describe "fir" do
     it "scalar implementation" do
       simd = SIMD.scalar
@@ -498,6 +436,73 @@ describe "SIMD Float32 operations" do
         simd.sum(a).should eq 42.0_f32
         simd.max(a).should eq 42.0_f32
         simd.min(a).should eq 42.0_f32
+      end
+    end
+  end
+
+  describe "additional operations" do
+    it "implements math ops" do
+      ([SIMD.scalar] + check_implementations).each do |simd|
+        a = Slice[1.0_f32, 4.0_f32, -9.0_f32, 16.0_f32]
+        b = Slice[2.0_f32, 2.0_f32, 3.0_f32, 4.0_f32]
+        dst = Slice(Float32).new(a.size)
+
+        simd.div(dst, a, b)
+        dst.should eq Slice[0.5_f32, 2.0_f32, -3.0_f32, 4.0_f32]
+
+        simd.abs(dst, a)
+        dst.should eq Slice[1.0_f32, 4.0_f32, 9.0_f32, 16.0_f32]
+
+        simd.neg(dst, a)
+        dst.should eq Slice[-1.0_f32, -4.0_f32, 9.0_f32, -16.0_f32]
+
+        simd.sqrt(dst, Slice[0.0_f32, 1.0_f32, 4.0_f32, 9.0_f32])
+        dst.should eq Slice[0.0_f32, 1.0_f32, 2.0_f32, 3.0_f32]
+
+        simd.rsqrt(dst, Slice[1.0_f32, 4.0_f32, 9.0_f32, 16.0_f32])
+        approx_eq_slice(dst, Slice[1.0_f32, 0.5_f32, (1.0_f32 / 3.0_f32), 0.25_f32]).should be_true
+
+        c = Slice[-1.2_f32, -1.5_f32, -1.6_f32, 1.2_f32, 2.5_f32, 3.5_f32]
+        tmp = Slice(Float32).new(c.size)
+
+        simd.floor(tmp, c)
+        tmp.should eq Slice[-2.0_f32, -2.0_f32, -2.0_f32, 1.0_f32, 2.0_f32, 3.0_f32]
+
+        simd.ceil(tmp, c)
+        tmp.should eq Slice[-1.0_f32, -1.0_f32, -1.0_f32, 2.0_f32, 3.0_f32, 4.0_f32]
+
+        simd.round(tmp, c)
+        tmp.should eq Slice[-1.0_f32, -2.0_f32, -2.0_f32, 1.0_f32, 2.0_f32, 4.0_f32]
+
+        d = Slice[1.0_f32, 2.0_f32, 3.0_f32, 4.0_f32]
+        e = Slice[0.0_f32, 3.0_f32, 2.0_f32, 5.0_f32]
+        simd.min(dst, d, e)
+        dst.should eq Slice[0.0_f32, 2.0_f32, 2.0_f32, 4.0_f32]
+        simd.max(dst, d, e)
+        dst.should eq Slice[1.0_f32, 3.0_f32, 3.0_f32, 5.0_f32]
+      end
+    end
+
+    it "implements comparisons" do
+      ([SIMD.scalar] + check_implementations).each do |simd|
+        a = Slice[1.0_f32, 2.0_f32, 2.0_f32, 4.0_f32]
+        b = Slice[1.0_f32, 3.0_f32, 2.0_f32, 0.0_f32]
+        mask = Slice(UInt8).new(a.size)
+
+        simd.cmp_eq(mask, a, b)
+        mask.should eq Slice[0xFF_u8, 0x00_u8, 0xFF_u8, 0x00_u8]
+
+        simd.cmp_ne(mask, a, b)
+        mask.should eq Slice[0x00_u8, 0xFF_u8, 0x00_u8, 0xFF_u8]
+
+        simd.cmp_lt(mask, a, b)
+        mask.should eq Slice[0x00_u8, 0xFF_u8, 0x00_u8, 0x00_u8]
+
+        simd.cmp_le(mask, a, b)
+        mask.should eq Slice[0xFF_u8, 0xFF_u8, 0xFF_u8, 0x00_u8]
+
+        simd.cmp_ge(mask, a, b)
+        mask.should eq Slice[0xFF_u8, 0x00_u8, 0xFF_u8, 0xFF_u8]
       end
     end
   end

@@ -13,83 +13,448 @@ class SIMD::SSE2 < SIMD::Base
     n
   end
 
+  # ============================================================
+  # Additional operations (non-float / generic)
+  # ============================================================
+
+  @[AlwaysInline]
+  def abs(dst : Slice(UInt8), a : Slice(UInt8)) : Nil
+    # SSE2 abs is slower than scalar for Int16
+    SIMD::SCALAR_FALLBACK.abs(dst, a)
+  end
+
+  @[AlwaysInline]
+  def abs(dst : Slice(Int8), a : Slice(Int8)) : Nil
+    SIMD::SCALAR_FALLBACK.abs(dst, a)
+  end
+
+  @[AlwaysInline]
+  def abs(dst : Slice(UInt16), a : Slice(UInt16)) : Nil
+    # SSE2 abs is slower than scalar for Int16
+    SIMD::SCALAR_FALLBACK.abs(dst, a)
+  end
+
+  @[AlwaysInline]
+  def abs(dst : Slice(Int16), a : Slice(Int16)) : Nil
+    # SSE2 abs is slower than scalar for Int16
+    SIMD::SCALAR_FALLBACK.abs(dst, a)
+  end
+
+  @[AlwaysInline]
+  def abs(dst : Slice(UInt32), a : Slice(UInt32)) : Nil
+    SIMD::SCALAR_FALLBACK.abs(dst, a)
+  end
+
+  @[AlwaysInline]
+  def abs(dst : Slice(Int32), a : Slice(Int32)) : Nil
+    # SSE2 abs is slower than scalar for Int32
+    SIMD::SCALAR_FALLBACK.abs(dst, a)
+  end
+
+  @[AlwaysInline]
+  def abs(dst : Slice(UInt64), a : Slice(UInt64)) : Nil
+    SIMD::SCALAR_FALLBACK.abs(dst, a)
+  end
+
+  @[AlwaysInline]
+  def abs(dst : Slice(Int64), a : Slice(Int64)) : Nil
+    SIMD::SCALAR_FALLBACK.abs(dst, a)
+  end
+
+  def neg(dst : Slice(Int8), a : Slice(Int8)) : Nil
+    n = check_len(dst, a)
+    dst_ptr = dst.to_unsafe
+    a_ptr = a.to_unsafe
+
+    i = 0
+    while i + 16 <= n
+      asm(
+        "pxor %xmm0, %xmm0
+         movdqu ($1), %xmm1
+         psubb %xmm1, %xmm0
+         movdqu %xmm0, ($0)"
+              :: "r"(dst_ptr + i), "r"(a_ptr + i)
+              : "xmm0", "xmm1", "memory"
+              : "volatile"
+      )
+      i += 16
+    end
+
+    while i < n
+      dst[i] = 0_i8 &- a[i]
+      i += 1
+    end
+  end
+
+  @[AlwaysInline]
+  def neg(dst : Slice(Int16), a : Slice(Int16)) : Nil
+    # SSE2 neg is slower than scalar for Int16
+    SIMD::SCALAR_FALLBACK.neg(dst, a)
+  end
+
+  @[AlwaysInline]
+  def neg(dst : Slice(Int32), a : Slice(Int32)) : Nil
+    # SSE2 neg is slower than scalar for Int32
+    SIMD::SCALAR_FALLBACK.neg(dst, a)
+  end
+
+  @[AlwaysInline]
+  def neg(dst : Slice(Int64), a : Slice(Int64)) : Nil
+    # SSE2 neg is slower than scalar for Int32
+    SIMD::SCALAR_FALLBACK.neg(dst, a)
+  end
+
+  @[AlwaysInline]
+  def argmax(a : Slice(T)) : Int32 forall T
+    SIMD::SCALAR_FALLBACK.argmax(a)
+  end
+
+  @[AlwaysInline]
+  def argmin(a : Slice(T)) : Int32 forall T
+    SIMD::SCALAR_FALLBACK.argmin(a)
+  end
+
+  @[AlwaysInline]
+  def any_nonzero(a : Slice(T)) : Bool forall T
+    SIMD::SCALAR_FALLBACK.any_nonzero(a)
+  end
+
+  @[AlwaysInline]
+  def all_nonzero(a : Slice(T)) : Bool forall T
+    SIMD::SCALAR_FALLBACK.all_nonzero(a)
+  end
+
+  @[AlwaysInline]
+  def cmp_eq(dst_mask : Slice(UInt8), a : Slice(T), b : Slice(T)) : Nil forall T
+    SIMD::SCALAR_FALLBACK.cmp_eq(dst_mask, a, b)
+  end
+
+  @[AlwaysInline]
+  def min(dst : Slice(Int8), a : Slice(Int8), b : Slice(Int8)) : Nil
+    SIMD::SCALAR_FALLBACK.min(dst, a, b)
+  end
+
+  @[AlwaysInline]
+  def max(dst : Slice(Int8), a : Slice(Int8), b : Slice(Int8)) : Nil
+    SIMD::SCALAR_FALLBACK.max(dst, a, b)
+  end
+
+  @[AlwaysInline]
+  def min(dst : Slice(Int16), a : Slice(Int16), b : Slice(Int16)) : Nil
+    # SSE2 min is slower than scalar for Int16
+    SIMD::SCALAR_FALLBACK.min(dst, a, b)
+  end
+
+  @[AlwaysInline]
+  def max(dst : Slice(Int16), a : Slice(Int16), b : Slice(Int16)) : Nil
+    # SSE2 max is slower than scalar for Int16
+    SIMD::SCALAR_FALLBACK.max(dst, a, b)
+  end
+
+  @[AlwaysInline]
+  def min(dst : Slice(Int32), a : Slice(Int32), b : Slice(Int32)) : Nil
+    # SSE2 min is slower than scalar for Int32
+    SIMD::SCALAR_FALLBACK.min(dst, a, b)
+  end
+
+  @[AlwaysInline]
+  def max(dst : Slice(Int32), a : Slice(Int32), b : Slice(Int32)) : Nil
+    # SSE2 max is slower than scalar for Int32
+    SIMD::SCALAR_FALLBACK.max(dst, a, b)
+  end
+
+  def cmp_eq(dst_mask : Slice(UInt8), a : Slice(Int8), b : Slice(Int8)) : Nil
+    n = check_len(dst_mask, a, b)
+    dst_ptr = dst_mask.to_unsafe
+    a_ptr = a.to_unsafe
+    b_ptr = b.to_unsafe
+
+    i = 0
+    while i + 16 <= n
+      asm(
+        "movdqu ($1), %xmm0
+         movdqu ($2), %xmm1
+         pcmpeqb %xmm1, %xmm0
+         movdqu %xmm0, ($0)"
+              :: "r"(dst_ptr + i), "r"(a_ptr + i), "r"(b_ptr + i)
+              : "xmm0", "xmm1", "memory"
+              : "volatile"
+      )
+      i += 16
+    end
+
+    while i < n
+      dst_mask[i] = a[i] == b[i] ? 0xFF_u8 : 0x00_u8
+      i += 1
+    end
+  end
+
+  def cmp_ne(dst_mask : Slice(UInt8), a : Slice(Int8), b : Slice(Int8)) : Nil
+    n = check_len(dst_mask, a, b)
+    dst_ptr = dst_mask.to_unsafe
+    a_ptr = a.to_unsafe
+    b_ptr = b.to_unsafe
+
+    i = 0
+    while i + 16 <= n
+      asm(
+        "movdqu ($1), %xmm0
+         movdqu ($2), %xmm1
+         pcmpeqb %xmm1, %xmm0
+         pcmpeqb %xmm2, %xmm2
+         pxor %xmm2, %xmm0
+         movdqu %xmm0, ($0)"
+              :: "r"(dst_ptr + i), "r"(a_ptr + i), "r"(b_ptr + i)
+              : "xmm0", "xmm1", "xmm2", "memory"
+              : "volatile"
+      )
+      i += 16
+    end
+
+    while i < n
+      dst_mask[i] = a[i] != b[i] ? 0xFF_u8 : 0x00_u8
+      i += 1
+    end
+  end
+
+  def cmp_lt(dst_mask : Slice(UInt8), a : Slice(Int8), b : Slice(Int8)) : Nil
+    n = check_len(dst_mask, a, b)
+    dst_ptr = dst_mask.to_unsafe
+    a_ptr = a.to_unsafe
+    b_ptr = b.to_unsafe
+
+    i = 0
+    while i + 16 <= n
+      asm(
+        "movdqu ($1), %xmm0
+         movdqu ($2), %xmm1
+         pcmpgtb %xmm0, %xmm1
+         movdqu %xmm1, ($0)"
+              :: "r"(dst_ptr + i), "r"(a_ptr + i), "r"(b_ptr + i)
+              : "xmm0", "xmm1", "memory"
+              : "volatile"
+      )
+      i += 16
+    end
+
+    while i < n
+      dst_mask[i] = a[i] < b[i] ? 0xFF_u8 : 0x00_u8
+      i += 1
+    end
+  end
+
+  def cmp_le(dst_mask : Slice(UInt8), a : Slice(Int8), b : Slice(Int8)) : Nil
+    n = check_len(dst_mask, a, b)
+    dst_ptr = dst_mask.to_unsafe
+    a_ptr = a.to_unsafe
+    b_ptr = b.to_unsafe
+
+    i = 0
+    while i + 16 <= n
+      asm(
+        "movdqu ($1), %xmm0
+         movdqu ($2), %xmm1
+         pcmpgtb %xmm1, %xmm0
+         pcmpeqb %xmm2, %xmm2
+         pxor %xmm2, %xmm0
+         movdqu %xmm0, ($0)"
+              :: "r"(dst_ptr + i), "r"(a_ptr + i), "r"(b_ptr + i)
+              : "xmm0", "xmm1", "xmm2", "memory"
+              : "volatile"
+      )
+      i += 16
+    end
+
+    while i < n
+      dst_mask[i] = a[i] <= b[i] ? 0xFF_u8 : 0x00_u8
+      i += 1
+    end
+  end
+
+  def cmp_ge(dst_mask : Slice(UInt8), a : Slice(Int8), b : Slice(Int8)) : Nil
+    cmp_le(dst_mask, b, a)
+  end
+
+  @[AlwaysInline]
+  def cmp_eq(dst_mask : Slice(UInt8), a : Slice(Int16), b : Slice(Int16)) : Nil
+    # SSE2 cmp_eq is slower than scalar for Int16
+    SIMD::SCALAR_FALLBACK.cmp_eq(dst_mask, a, b)
+  end
+
+  @[AlwaysInline]
+  def cmp_ne(dst_mask : Slice(UInt8), a : Slice(Int16), b : Slice(Int16)) : Nil
+    # SSE2 cmp_ne is slower than scalar for Int16
+    SIMD::SCALAR_FALLBACK.cmp_ne(dst_mask, a, b)
+  end
+
+  @[AlwaysInline]
+  def cmp_lt(dst_mask : Slice(UInt8), a : Slice(Int16), b : Slice(Int16)) : Nil
+    # SSE2 cmp_lt is slower than scalar for Int16
+    SIMD::SCALAR_FALLBACK.cmp_lt(dst_mask, a, b)
+  end
+
+  @[AlwaysInline]
+  def cmp_le(dst_mask : Slice(UInt8), a : Slice(Int16), b : Slice(Int16)) : Nil
+    # SSE2 cmp_le is slower than scalar for Int16
+    SIMD::SCALAR_FALLBACK.cmp_le(dst_mask, a, b)
+  end
+
+  @[AlwaysInline]
+  def cmp_ge(dst_mask : Slice(UInt8), a : Slice(Int16), b : Slice(Int16)) : Nil
+    # SSE2 cmp_ge is slower than scalar for Int16
+    SIMD::SCALAR_FALLBACK.cmp_ge(dst_mask, a, b)
+  end
+
+  def cmp_ne(dst_mask : Slice(UInt8), a : Slice(Int32), b : Slice(Int32)) : Nil
+    n = check_len(dst_mask, a, b)
+    a_ptr = a.to_unsafe
+    b_ptr = b.to_unsafe
+
+    i = 0
+    while i + 4 <= n
+      tmp = uninitialized StaticArray(Int32, 4)
+      asm(
+        "movdqu ($1), %xmm0
+         movdqu ($2), %xmm1
+         pcmpeqd %xmm1, %xmm0
+         movdqu %xmm0, ($0)"
+              :: "r"(tmp.to_unsafe), "r"(a_ptr + i), "r"(b_ptr + i)
+              : "xmm0", "xmm1", "memory"
+              : "volatile"
+      )
+      (0...4).each { |j| dst_mask[i + j] = tmp[j] == 0 ? 0xFF_u8 : 0x00_u8 }
+      i += 4
+    end
+
+    while i < n
+      dst_mask[i] = a[i] != b[i] ? 0xFF_u8 : 0x00_u8
+      i += 1
+    end
+  end
+
+  @[AlwaysInline]
+  def cmp_lt(dst_mask : Slice(UInt8), a : Slice(Int32), b : Slice(Int32)) : Nil
+    SIMD::SCALAR_FALLBACK.cmp_lt(dst_mask, a, b)
+  end
+
+  def cmp_le(dst_mask : Slice(UInt8), a : Slice(Int32), b : Slice(Int32)) : Nil
+    n = check_len(dst_mask, a, b)
+    a_ptr = a.to_unsafe
+    b_ptr = b.to_unsafe
+
+    i = 0
+    while i + 4 <= n
+      tmp = uninitialized StaticArray(Int32, 4)
+      asm(
+        "movdqu ($1), %xmm0
+         movdqu ($2), %xmm1
+         pcmpgtd %xmm1, %xmm0
+         pcmpeqd %xmm2, %xmm2
+         pxor %xmm2, %xmm0
+         movdqu %xmm0, ($0)"
+              :: "r"(tmp.to_unsafe), "r"(a_ptr + i), "r"(b_ptr + i)
+              : "xmm0", "xmm1", "xmm2", "memory"
+              : "volatile"
+      )
+      (0...4).each { |j| dst_mask[i + j] = tmp[j] != 0 ? 0xFF_u8 : 0x00_u8 }
+      i += 4
+    end
+
+    while i < n
+      dst_mask[i] = a[i] <= b[i] ? 0xFF_u8 : 0x00_u8
+      i += 1
+    end
+  end
+
+  def cmp_ge(dst_mask : Slice(UInt8), a : Slice(Int32), b : Slice(Int32)) : Nil
+    cmp_le(dst_mask, b, a)
+  end
+
+  @[AlwaysInline]
+  def cmp_ne(dst_mask : Slice(UInt8), a : Slice(T), b : Slice(T)) : Nil forall T
+    SIMD::SCALAR_FALLBACK.cmp_ne(dst_mask, a, b)
+  end
+
+  @[AlwaysInline]
+  def cmp_lt(dst_mask : Slice(UInt8), a : Slice(T), b : Slice(T)) : Nil forall T
+    SIMD::SCALAR_FALLBACK.cmp_lt(dst_mask, a, b)
+  end
+
+  @[AlwaysInline]
+  def cmp_le(dst_mask : Slice(UInt8), a : Slice(T), b : Slice(T)) : Nil forall T
+    SIMD::SCALAR_FALLBACK.cmp_le(dst_mask, a, b)
+  end
+
+  @[AlwaysInline]
+  def cmp_ge(dst_mask : Slice(UInt8), a : Slice(T), b : Slice(T)) : Nil forall T
+    SIMD::SCALAR_FALLBACK.cmp_ge(dst_mask, a, b)
+  end
+
+  @[AlwaysInline]
+  def min(dst : Slice(T), a : Slice(T), b : Slice(T)) : Nil forall T
+    SIMD::SCALAR_FALLBACK.min(dst, a, b)
+  end
+
+  @[AlwaysInline]
+  def max(dst : Slice(T), a : Slice(T), b : Slice(T)) : Nil forall T
+    SIMD::SCALAR_FALLBACK.max(dst, a, b)
+  end
+
+  @[AlwaysInline]
+  def gather(dst : Slice(T), src : Slice(T), indices : Slice(Int32)) : Nil forall T
+    # SSE2 lacks gather instruction; scalar is faster
+    SIMD::SCALAR_FALLBACK.gather(dst, src, indices)
+  end
+
+  @[AlwaysInline]
+  def scatter(dst : Slice(T), src : Slice(T), indices : Slice(Int32)) : Nil forall T
+    # SSE2 lacks scatter instruction; scalar is faster
+    SIMD::SCALAR_FALLBACK.scatter(dst, src, indices)
+  end
+
+  @[AlwaysInline]
+  def transpose(dst : Slice(T), src : Slice(T), rows : Int32, cols : Int32) : Nil forall T
+    SIMD::SCALAR_FALLBACK.transpose(dst, src, rows, cols)
+  end
+
+  @[AlwaysInline]
+  def gemv(dst : Slice(Float32), matrix : Slice(Float32), vector : Slice(Float32), alpha : Float32, beta : Float32) : Nil
+    SIMD::SCALAR_FALLBACK.gemv(dst, matrix, vector, alpha, beta)
+  end
+
+  @[AlwaysInline]
+  def gemv(dst : Slice(Float64), matrix : Slice(Float64), vector : Slice(Float64), alpha : Float64, beta : Float64) : Nil
+    # SSE2 gemv is slower than scalar for Float64
+    SIMD::SCALAR_FALLBACK.gemv(dst, matrix, vector, alpha, beta)
+  end
+
+  @[AlwaysInline]
+  def gemm(c : Slice(Float32), a : Slice(Float32), b : Slice(Float32), alpha : Float32, beta : Float32) : Nil
+    # SSE2 gemv is slower than scalar for Float64
+    SIMD::SCALAR_FALLBACK.gemm(c, a, b, alpha, beta)
+  end
+
+  @[AlwaysInline]
+  def gemm(c : Slice(Float64), a : Slice(Float64), b : Slice(Float64), alpha : Float64, beta : Float64) : Nil
+    SIMD::SCALAR_FALLBACK.gemm(c, a, b, alpha, beta)
+  end
+
+  @[AlwaysInline]
   def add(dst : Slice(Float32), a : Slice(Float32), b : Slice(Float32)) : Nil
-    n = check_len(dst, a, b)
-    dst_ptr = dst.to_unsafe
-    a_ptr = a.to_unsafe
-    b_ptr = b.to_unsafe
-
-    i = 0
-    while i + VECTOR_WIDTH <= n
-      asm(
-        "movups ($1), %xmm0
-         movups ($2), %xmm1
-         addps %xmm1, %xmm0
-         movups %xmm0, ($0)"
-              :: "r"(dst_ptr + i), "r"(a_ptr + i), "r"(b_ptr + i)
-              : "xmm0", "xmm1", "memory"
-              : "volatile"
-      )
-      i += VECTOR_WIDTH
-    end
-
-    # Scalar tail
-    while i < n
-      dst[i] = a[i] + b[i]
-      i += 1
-    end
+    # SSE2 add is slower than scalar due to setup overhead
+    SIMD::SCALAR_FALLBACK.add(dst, a, b)
   end
 
+  @[AlwaysInline]
   def sub(dst : Slice(Float32), a : Slice(Float32), b : Slice(Float32)) : Nil
-    n = check_len(dst, a, b)
-    dst_ptr = dst.to_unsafe
-    a_ptr = a.to_unsafe
-    b_ptr = b.to_unsafe
-
-    i = 0
-    while i + VECTOR_WIDTH <= n
-      asm(
-        "movups ($1), %xmm0
-         movups ($2), %xmm1
-         subps %xmm1, %xmm0
-         movups %xmm0, ($0)"
-              :: "r"(dst_ptr + i), "r"(a_ptr + i), "r"(b_ptr + i)
-              : "xmm0", "xmm1", "memory"
-              : "volatile"
-      )
-      i += VECTOR_WIDTH
-    end
-
-    while i < n
-      dst[i] = a[i] - b[i]
-      i += 1
-    end
+    # SSE2 sub is slower than scalar due to setup overhead
+    SIMD::SCALAR_FALLBACK.sub(dst, a, b)
   end
 
+  @[AlwaysInline]
   def mul(dst : Slice(Float32), a : Slice(Float32), b : Slice(Float32)) : Nil
-    n = check_len(dst, a, b)
-    dst_ptr = dst.to_unsafe
-    a_ptr = a.to_unsafe
-    b_ptr = b.to_unsafe
-
-    i = 0
-    while i + VECTOR_WIDTH <= n
-      asm(
-        "movups ($1), %xmm0
-         movups ($2), %xmm1
-         mulps %xmm1, %xmm0
-         movups %xmm0, ($0)"
-              :: "r"(dst_ptr + i), "r"(a_ptr + i), "r"(b_ptr + i)
-              : "xmm0", "xmm1", "memory"
-              : "volatile"
-      )
-      i += VECTOR_WIDTH
-    end
-
-    while i < n
-      dst[i] = a[i] * b[i]
-      i += 1
-    end
+    # SSE2 mul is slower than scalar due to setup overhead
+    SIMD::SCALAR_FALLBACK.mul(dst, a, b)
   end
 
   def fma(dst : Slice(Float32), a : Slice(Float32), b : Slice(Float32), c : Slice(Float32)) : Nil
@@ -122,78 +487,196 @@ class SIMD::SSE2 < SIMD::Base
     end
   end
 
+  @[AlwaysInline]
   def clamp(dst : Slice(Float32), a : Slice(Float32), lo : Float32, hi : Float32) : Nil
     # SSE2 clamp is slower than scalar due to setup overhead
-    Log.trace { "clamp forwarding to scalar (faster)" }
     SIMD::SCALAR_FALLBACK.clamp(dst, a, lo, hi)
   end
 
+  @[AlwaysInline]
   def axpby(dst : Slice(Float32), a : Slice(Float32), b : Slice(Float32), alpha : Float32, beta : Float32) : Nil
+    # SSE2 axpby is slower than scalar due to setup overhead
+    SIMD::SCALAR_FALLBACK.axpby(dst, a, b, alpha, beta)
+  end
+
+  def div(dst : Slice(Float32), a : Slice(Float32), b : Slice(Float32)) : Nil
     n = check_len(dst, a, b)
     dst_ptr = dst.to_unsafe
     a_ptr = a.to_unsafe
     b_ptr = b.to_unsafe
-
-    alpha_arr = StaticArray[alpha, alpha, alpha, alpha]
-    beta_arr = StaticArray[beta, beta, beta, beta]
-    alpha_ptr = alpha_arr.to_unsafe
-    beta_ptr = beta_arr.to_unsafe
 
     i = 0
     while i + VECTOR_WIDTH <= n
       asm(
         "movups ($1), %xmm0
          movups ($2), %xmm1
-         movups ($3), %xmm2
-         movups ($4), %xmm3
-         mulps %xmm2, %xmm0
-         mulps %xmm3, %xmm1
-         addps %xmm1, %xmm0
+         divps %xmm1, %xmm0
          movups %xmm0, ($0)"
-              :: "r"(dst_ptr + i), "r"(a_ptr + i), "r"(b_ptr + i), "r"(alpha_ptr), "r"(beta_ptr)
-              : "xmm0", "xmm1", "xmm2", "xmm3", "memory"
-              : "volatile"
-      )
-      i += VECTOR_WIDTH
-    end
-
-    while i < n
-      dst[i] = alpha * a[i] + beta * b[i]
-      i += 1
-    end
-  end
-
-  def sum(a : Slice(Float32)) : Float32
-    n = a.size
-    a_ptr = a.to_unsafe
-
-    acc = StaticArray[0.0_f32, 0.0_f32, 0.0_f32, 0.0_f32]
-    acc_ptr = acc.to_unsafe
-
-    i = 0
-    while i + VECTOR_WIDTH <= n
-      asm(
-        "movups ($0), %xmm0
-         movups ($1), %xmm1
-         addps %xmm1, %xmm0
-         movups %xmm0, ($0)"
-              :: "r"(acc_ptr), "r"(a_ptr + i)
+              :: "r"(dst_ptr + i), "r"(a_ptr + i), "r"(b_ptr + i)
               : "xmm0", "xmm1", "memory"
               : "volatile"
       )
       i += VECTOR_WIDTH
     end
 
-    # Horizontal sum of accumulator
-    result = acc[0] + acc[1] + acc[2] + acc[3]
-
-    # Add tail elements
     while i < n
-      result += a[i]
+      dst[i] = a[i] / b[i]
       i += 1
     end
+  end
 
-    result
+  def sqrt(dst : Slice(Float32), a : Slice(Float32)) : Nil
+    n = check_len(dst, a)
+    dst_ptr = dst.to_unsafe
+    a_ptr = a.to_unsafe
+
+    i = 0
+    while i + VECTOR_WIDTH <= n
+      asm(
+        "movups ($1), %xmm0
+         sqrtps %xmm0, %xmm0
+         movups %xmm0, ($0)"
+              :: "r"(dst_ptr + i), "r"(a_ptr + i)
+              : "xmm0", "memory"
+              : "volatile"
+      )
+      i += VECTOR_WIDTH
+    end
+
+    while i < n
+      dst[i] = Math.sqrt(a[i])
+      i += 1
+    end
+  end
+
+  @[AlwaysInline]
+  def rsqrt(dst : Slice(Float32), a : Slice(Float32)) : Nil
+    # SSE2 rsqrt is slower than scalar due to setup overhead
+    SIMD::SCALAR_FALLBACK.rsqrt(dst, a)
+  end
+
+  @[AlwaysInline]
+  def abs(dst : Slice(Float32), a : Slice(Float32)) : Nil
+    # SSE2 abs is slower than scalar due to setup overhead
+    SIMD::SCALAR_FALLBACK.abs(dst, a)
+  end
+
+  @[AlwaysInline]
+  def neg(dst : Slice(Float32), a : Slice(Float32)) : Nil
+    # SSE2 neg is slower than scalar due to setup overhead
+    SIMD::SCALAR_FALLBACK.neg(dst, a)
+  end
+
+  def min(dst : Slice(Float32), a : Slice(Float32), b : Slice(Float32)) : Nil
+    n = check_len(dst, a, b)
+    dst_ptr = dst.to_unsafe
+    a_ptr = a.to_unsafe
+    b_ptr = b.to_unsafe
+
+    i = 0
+    while i + VECTOR_WIDTH <= n
+      asm(
+        "movups ($1), %xmm0
+         movups ($2), %xmm1
+         minps %xmm1, %xmm0
+         movups %xmm0, ($0)"
+              :: "r"(dst_ptr + i), "r"(a_ptr + i), "r"(b_ptr + i)
+              : "xmm0", "xmm1", "memory"
+              : "volatile"
+      )
+      i += VECTOR_WIDTH
+    end
+
+    while i < n
+      av = a[i]
+      bv = b[i]
+      dst[i] = av < bv ? av : bv
+      i += 1
+    end
+  end
+
+  def max(dst : Slice(Float32), a : Slice(Float32), b : Slice(Float32)) : Nil
+    n = check_len(dst, a, b)
+    dst_ptr = dst.to_unsafe
+    a_ptr = a.to_unsafe
+    b_ptr = b.to_unsafe
+
+    i = 0
+    while i + VECTOR_WIDTH <= n
+      asm(
+        "movups ($1), %xmm0
+         movups ($2), %xmm1
+         maxps %xmm1, %xmm0
+         movups %xmm0, ($0)"
+              :: "r"(dst_ptr + i), "r"(a_ptr + i), "r"(b_ptr + i)
+              : "xmm0", "xmm1", "memory"
+              : "volatile"
+      )
+      i += VECTOR_WIDTH
+    end
+
+    while i < n
+      av = a[i]
+      bv = b[i]
+      dst[i] = av > bv ? av : bv
+      i += 1
+    end
+  end
+
+  # SSE2 doesn't provide vector floor/ceil/round for Float32.
+  # (SSE4.1 overrides these in SIMD::SSE41.)
+  @[AlwaysInline]
+  def floor(dst : Slice(Float32), a : Slice(Float32)) : Nil
+    # SSE2 lacks roundps; scalar is faster
+    SIMD::SCALAR_FALLBACK.floor(dst, a)
+  end
+
+  @[AlwaysInline]
+  def ceil(dst : Slice(Float32), a : Slice(Float32)) : Nil
+    # SSE2 lacks roundps; scalar is faster
+    SIMD::SCALAR_FALLBACK.ceil(dst, a)
+  end
+
+  @[AlwaysInline]
+  def round(dst : Slice(Float32), a : Slice(Float32)) : Nil
+    # SSE2 lacks roundps; scalar is faster
+    SIMD::SCALAR_FALLBACK.round(dst, a)
+  end
+
+  @[AlwaysInline]
+  def cmp_eq(dst_mask : Slice(UInt8), a : Slice(Float32), b : Slice(Float32)) : Nil
+    # SSE2 cmp_eq is slower than scalar due to mask extraction overhead
+    SIMD::SCALAR_FALLBACK.cmp_eq(dst_mask, a, b)
+  end
+
+  @[AlwaysInline]
+  def cmp_ne(dst_mask : Slice(UInt8), a : Slice(Float32), b : Slice(Float32)) : Nil
+    # SSE2 cmp_ne is slower than scalar due to mask extraction overhead
+    SIMD::SCALAR_FALLBACK.cmp_ne(dst_mask, a, b)
+  end
+
+  @[AlwaysInline]
+  def cmp_lt(dst_mask : Slice(UInt8), a : Slice(Float32), b : Slice(Float32)) : Nil
+    # SSE2 cmp_lt is slower than scalar due to mask extraction overhead
+    SIMD::SCALAR_FALLBACK.cmp_lt(dst_mask, a, b)
+  end
+
+  @[AlwaysInline]
+  def cmp_le(dst_mask : Slice(UInt8), a : Slice(Float32), b : Slice(Float32)) : Nil
+    # SSE2 cmp_le is slower than scalar due to mask extraction overhead
+    SIMD::SCALAR_FALLBACK.cmp_le(dst_mask, a, b)
+  end
+
+  @[AlwaysInline]
+  def cmp_ge(dst_mask : Slice(UInt8), a : Slice(Float32), b : Slice(Float32)) : Nil
+    # SSE2 cmp_ge is slower than scalar due to mask extraction overhead
+    SIMD::SCALAR_FALLBACK.cmp_ge(dst_mask, a, b)
+  end
+
+  @[AlwaysInline]
+  def sum(a : Slice(Float32)) : Float32
+    # SSE2 sum is slower than scalar
+    SIMD::SCALAR_FALLBACK.sum(a)
   end
 
   def dot(a : Slice(Float32), b : Slice(Float32)) : Float32
@@ -275,30 +758,9 @@ class SIMD::SSE2 < SIMD::Base
     result
   end
 
+  @[AlwaysInline]
   def bitwise_and(dst : Slice(UInt32), a : Slice(UInt32), b : Slice(UInt32)) : Nil
-    n = check_len(dst, a, b)
-    dst_ptr = dst.to_unsafe
-    a_ptr = a.to_unsafe
-    b_ptr = b.to_unsafe
-
-    i = 0
-    while i + VECTOR_WIDTH <= n
-      asm(
-        "movdqu ($1), %xmm0
-         movdqu ($2), %xmm1
-         pand %xmm1, %xmm0
-         movdqu %xmm0, ($0)"
-              :: "r"(dst_ptr + i), "r"(a_ptr + i), "r"(b_ptr + i)
-              : "xmm0", "xmm1", "memory"
-              : "volatile"
-      )
-      i += VECTOR_WIDTH
-    end
-
-    while i < n
-      dst[i] = a[i] & b[i]
-      i += 1
-    end
+    SIMD::SCALAR_FALLBACK.bitwise_and(dst, a, b)
   end
 
   def bitwise_or(dst : Slice(UInt32), a : Slice(UInt32), b : Slice(UInt32)) : Nil
@@ -353,141 +815,55 @@ class SIMD::SSE2 < SIMD::Base
     end
   end
 
+  @[AlwaysInline]
   def bswap(dst : Slice(UInt32), a : Slice(UInt32)) : Nil
-    n = check_len(dst, a)
-
-    # SSE2 doesn't have pshufb, use scalar bswap
-    i = 0
-    while i < n
-      v = a[i]
-      dst[i] = ((v & 0x000000FF_u32) << 24) |
-               ((v & 0x0000FF00_u32) << 8) |
-               ((v & 0x00FF0000_u32) >> 8) |
-               ((v & 0xFF000000_u32) >> 24)
-      i += 1
-    end
+    SIMD::SCALAR_FALLBACK.bswap(dst, a)
   end
 
+  @[AlwaysInline]
   def popcount(a : Slice(UInt8)) : UInt64
     # SSE2 lacks popcount instruction; scalar is equally fast or faster
     SIMD::SCALAR_FALLBACK.popcount(a)
   end
 
+  @[AlwaysInline]
   def cmp_gt_mask(dst_mask : Slice(UInt8), a : Slice(Float32), b : Slice(Float32)) : Nil
-    n = check_len(dst_mask, a, b)
-    a_ptr = a.to_unsafe
-    b_ptr = b.to_unsafe
-
-    # SSE2 cmpps produces 32-bit masks, we need to extract byte masks
-    i = 0
-    while i + VECTOR_WIDTH <= n
-      mask_tmp = uninitialized StaticArray(UInt32, 4)
-      asm(
-        "movups ($1), %xmm0
-         movups ($2), %xmm1
-         cmpltps %xmm0, %xmm1
-         movdqu %xmm1, ($0)"
-              :: "r"(mask_tmp.to_unsafe), "r"(a_ptr + i), "r"(b_ptr + i)
-              : "xmm0", "xmm1", "memory"
-              : "volatile"
-      )
-      # cmpltps sets all 1s (0xFFFFFFFF) if b < a (i.e., a > b), else 0
-      dst_mask[i] = mask_tmp[0] != 0 ? 0xFF_u8 : 0x00_u8
-      dst_mask[i + 1] = mask_tmp[1] != 0 ? 0xFF_u8 : 0x00_u8
-      dst_mask[i + 2] = mask_tmp[2] != 0 ? 0xFF_u8 : 0x00_u8
-      dst_mask[i + 3] = mask_tmp[3] != 0 ? 0xFF_u8 : 0x00_u8
-      i += VECTOR_WIDTH
-    end
-
-    while i < n
-      dst_mask[i] = a[i] > b[i] ? 0xFF_u8 : 0x00_u8
-      i += 1
-    end
+    SIMD::SCALAR_FALLBACK.cmp_gt_mask(dst_mask, a, b)
   end
 
-  def blend(dst : Slice(Float32), t : Slice(Float32), f : Slice(Float32), mask : Slice(UInt8)) : Nil
-    # SSE2 lacks blendvps; use scalar fallback
-    n = check_len(dst, t, f, mask)
-    i = 0
-    while i < n
-      dst[i] = mask[i] == 0 ? f[i] : t[i]
-      i += 1
-    end
-  end
-
+  @[AlwaysInline]
   def compress(dst : Slice(Float32), src : Slice(Float32), mask : Slice(UInt8)) : Int32
     # SSE2 has no compress instruction; use scalar
-    raise ArgumentError.new("length mismatch") unless src.size == mask.size
-    outp = 0
-    i = 0
-    n = src.size
-    while i < n
-      if mask[i] != 0
-        raise ArgumentError.new("dst too small") if outp >= dst.size
-        dst[outp] = src[i]
-        outp += 1
-      end
-      i += 1
-    end
-    outp
+    SIMD::SCALAR_FALLBACK.compress(dst, src, mask)
   end
 
+  @[AlwaysInline]
   def copy(dst : Slice(UInt8), src : Slice(UInt8)) : Nil
     # SSE2 copy is slower than scalar/LLVM memcpy optimization
-    Log.trace { "copy forwarding to scalar (faster)" }
     SIMD::SCALAR_FALLBACK.copy(dst, src)
   end
 
+  @[AlwaysInline]
   def fill(dst : Slice(UInt8), value : UInt8) : Nil
     # Scalar fill is faster (LLVM optimizes to memset)
-    Log.trace { "fill forwarding to scalar (faster)" }
     SIMD::SCALAR_FALLBACK.fill(dst, value)
   end
 
+  @[AlwaysInline]
   def convert(dst : Slice(Float32), src : Slice(Int16)) : Nil
     # SSE2 i16_to_f32 is slower due to manual unpacking overhead
-    Log.trace { "convert forwarding to scalar (faster)" }
     SIMD::SCALAR_FALLBACK.convert(dst, src)
   end
 
+  @[AlwaysInline]
   def convert(dst : Slice(Float32), src : Slice(UInt8), scale : Float32) : Nil
-    n = check_len(dst, src)
-    dst_ptr = dst.to_unsafe
-
-    scale_arr = StaticArray[scale, scale, scale, scale]
-    scale_ptr = scale_arr.to_unsafe
-
-    i = 0
-    while i + VECTOR_WIDTH <= n
-      # Unpack u8 to i32, then convert to f32 and scale
-      tmp = uninitialized StaticArray(Int32, 4)
-      tmp[0] = src[i].to_i32
-      tmp[1] = src[i + 1].to_i32
-      tmp[2] = src[i + 2].to_i32
-      tmp[3] = src[i + 3].to_i32
-
-      asm(
-        "movdqu ($1), %xmm0
-         cvtdq2ps %xmm0, %xmm0
-         movups ($2), %xmm1
-         mulps %xmm1, %xmm0
-         movups %xmm0, ($0)"
-              :: "r"(dst_ptr + i), "r"(tmp.to_unsafe), "r"(scale_ptr)
-              : "xmm0", "xmm1", "memory"
-              : "volatile"
-      )
-      i += VECTOR_WIDTH
-    end
-
-    while i < n
-      dst[i] = src[i].to_f32 * scale
-      i += 1
-    end
+    # SSE2 convert with scale is slower than scalar
+    SIMD::SCALAR_FALLBACK.convert(dst, src, scale)
   end
 
+  @[AlwaysInline]
   def fir(dst : Slice(Float32), src : Slice(Float32), coeff : Slice(Float32)) : Nil
     # SSE2 FIR is slower than scalar due to setup overhead
-    Log.trace { "fir forwarding to scalar (faster)" }
     SIMD::SCALAR_FALLBACK.fir(dst, src, coeff)
   end
 
@@ -569,290 +945,193 @@ class SIMD::SSE2 < SIMD::Base
 
   VECTOR_WIDTH_F64 = 2 # 128-bit / 64-bit = 2 doubles
 
+  @[AlwaysInline]
   def add(dst : Slice(Float64), a : Slice(Float64), b : Slice(Float64)) : Nil
-    n = check_len(dst, a, b)
-    dst_ptr = dst.to_unsafe
-    a_ptr = a.to_unsafe
-    b_ptr = b.to_unsafe
-
-    i = 0
-    while i + VECTOR_WIDTH_F64 <= n
-      asm(
-        "movupd ($1), %xmm0
-         movupd ($2), %xmm1
-         addpd %xmm1, %xmm0
-         movupd %xmm0, ($0)"
-              :: "r"(dst_ptr + i), "r"(a_ptr + i), "r"(b_ptr + i)
-              : "xmm0", "xmm1", "memory"
-              : "volatile"
-      )
-      i += VECTOR_WIDTH_F64
-    end
-
-    while i < n
-      dst[i] = a[i] + b[i]
-      i += 1
-    end
+    # SSE2 add is slower than scalar for Float64
+    SIMD::SCALAR_FALLBACK.add(dst, a, b)
   end
 
+  @[AlwaysInline]
   def sub(dst : Slice(Float64), a : Slice(Float64), b : Slice(Float64)) : Nil
-    n = check_len(dst, a, b)
-    dst_ptr = dst.to_unsafe
-    a_ptr = a.to_unsafe
-    b_ptr = b.to_unsafe
-
-    i = 0
-    while i + VECTOR_WIDTH_F64 <= n
-      asm(
-        "movupd ($1), %xmm0
-         movupd ($2), %xmm1
-         subpd %xmm1, %xmm0
-         movupd %xmm0, ($0)"
-              :: "r"(dst_ptr + i), "r"(a_ptr + i), "r"(b_ptr + i)
-              : "xmm0", "xmm1", "memory"
-              : "volatile"
-      )
-      i += VECTOR_WIDTH_F64
-    end
-
-    while i < n
-      dst[i] = a[i] - b[i]
-      i += 1
-    end
+    # SSE2 sub is slower than scalar for Float64
+    SIMD::SCALAR_FALLBACK.sub(dst, a, b)
   end
 
+  @[AlwaysInline]
   def mul(dst : Slice(Float64), a : Slice(Float64), b : Slice(Float64)) : Nil
-    n = check_len(dst, a, b)
-    dst_ptr = dst.to_unsafe
-    a_ptr = a.to_unsafe
-    b_ptr = b.to_unsafe
-
-    i = 0
-    while i + VECTOR_WIDTH_F64 <= n
-      asm(
-        "movupd ($1), %xmm0
-         movupd ($2), %xmm1
-         mulpd %xmm1, %xmm0
-         movupd %xmm0, ($0)"
-              :: "r"(dst_ptr + i), "r"(a_ptr + i), "r"(b_ptr + i)
-              : "xmm0", "xmm1", "memory"
-              : "volatile"
-      )
-      i += VECTOR_WIDTH_F64
-    end
-
-    while i < n
-      dst[i] = a[i] * b[i]
-      i += 1
-    end
+    # SSE2 mul is slower than scalar for Float64
+    SIMD::SCALAR_FALLBACK.mul(dst, a, b)
   end
 
+  @[AlwaysInline]
   def fma(dst : Slice(Float64), a : Slice(Float64), b : Slice(Float64), c : Slice(Float64)) : Nil
-    n = check_len(dst, a, b, c)
-    dst_ptr = dst.to_unsafe
-    a_ptr = a.to_unsafe
-    b_ptr = b.to_unsafe
-    c_ptr = c.to_unsafe
-
-    i = 0
-    while i + VECTOR_WIDTH_F64 <= n
-      asm(
-        "movupd ($1), %xmm0
-         movupd ($2), %xmm1
-         movupd ($3), %xmm2
-         mulpd %xmm1, %xmm0
-         addpd %xmm2, %xmm0
-         movupd %xmm0, ($0)"
-              :: "r"(dst_ptr + i), "r"(a_ptr + i), "r"(b_ptr + i), "r"(c_ptr + i)
-              : "xmm0", "xmm1", "xmm2", "memory"
-              : "volatile"
-      )
-      i += VECTOR_WIDTH_F64
-    end
-
-    while i < n
-      dst[i] = a[i] * b[i] + c[i]
-      i += 1
-    end
+    # SSE2 fma is slower than scalar for Float64
+    SIMD::SCALAR_FALLBACK.fma(dst, a, b, c)
   end
 
+  @[AlwaysInline]
   def clamp(dst : Slice(Float64), a : Slice(Float64), lo : Float64, hi : Float64) : Nil
     SIMD::SCALAR_FALLBACK.clamp(dst, a, lo, hi)
   end
 
+  @[AlwaysInline]
   def axpby(dst : Slice(Float64), a : Slice(Float64), b : Slice(Float64), alpha : Float64, beta : Float64) : Nil
-    n = check_len(dst, a, b)
-    dst_ptr = dst.to_unsafe
+    # SSE2 axpby is slower than scalar for Float64
+    SIMD::SCALAR_FALLBACK.axpby(dst, a, b, alpha, beta)
+  end
+
+  @[AlwaysInline]
+  def div(dst : Slice(Float64), a : Slice(Float64), b : Slice(Float64)) : Nil
+    # SSE2 div is marginally slower than scalar for Float64
+    SIMD::SCALAR_FALLBACK.div(dst, a, b)
+  end
+
+  @[AlwaysInline]
+  def sqrt(dst : Slice(Float64), a : Slice(Float64)) : Nil
+    # SSE2 sqrt is marginally slower than scalar for Float64
+    SIMD::SCALAR_FALLBACK.sqrt(dst, a)
+  end
+
+  @[AlwaysInline]
+  def rsqrt(dst : Slice(Float64), a : Slice(Float64)) : Nil
+    # SSE2 rsqrt is marginally slower than scalar for Float64
+    SIMD::SCALAR_FALLBACK.rsqrt(dst, a)
+  end
+
+  @[AlwaysInline]
+  def abs(dst : Slice(Float64), a : Slice(Float64)) : Nil
+    # SSE2 abs is slower than scalar for Float64
+    SIMD::SCALAR_FALLBACK.abs(dst, a)
+  end
+
+  @[AlwaysInline]
+  def neg(dst : Slice(Float64), a : Slice(Float64)) : Nil
+    # SSE2 neg is slower than scalar for Float64
+    SIMD::SCALAR_FALLBACK.neg(dst, a)
+  end
+
+  @[AlwaysInline]
+  def min(dst : Slice(Float64), a : Slice(Float64), b : Slice(Float64)) : Nil
+    # SSE2 min is slower than scalar for Float64
+    SIMD::SCALAR_FALLBACK.min(dst, a, b)
+  end
+
+  @[AlwaysInline]
+  def max(dst : Slice(Float64), a : Slice(Float64), b : Slice(Float64)) : Nil
+    # SSE2 max is slower than scalar for Float64
+    SIMD::SCALAR_FALLBACK.max(dst, a, b)
+  end
+
+  @[AlwaysInline]
+  def floor(dst : Slice(Float64), a : Slice(Float64)) : Nil
+    SIMD::SCALAR_FALLBACK.floor(dst, a)
+  end
+
+  @[AlwaysInline]
+  def ceil(dst : Slice(Float64), a : Slice(Float64)) : Nil
+    SIMD::SCALAR_FALLBACK.ceil(dst, a)
+  end
+
+  @[AlwaysInline]
+  def round(dst : Slice(Float64), a : Slice(Float64)) : Nil
+    SIMD::SCALAR_FALLBACK.round(dst, a)
+  end
+
+  def cmp_eq(dst_mask : Slice(UInt8), a : Slice(Float64), b : Slice(Float64)) : Nil
+    n = check_len(dst_mask, a, b)
     a_ptr = a.to_unsafe
     b_ptr = b.to_unsafe
 
-    alpha_arr = StaticArray[alpha, alpha]
-    beta_arr = StaticArray[beta, beta]
-    alpha_ptr = alpha_arr.to_unsafe
-    beta_ptr = beta_arr.to_unsafe
-
     i = 0
     while i + VECTOR_WIDTH_F64 <= n
+      tmp = uninitialized StaticArray(UInt64, 2)
       asm(
         "movupd ($1), %xmm0
          movupd ($2), %xmm1
-         movupd ($3), %xmm2
-         movupd ($4), %xmm3
-         mulpd %xmm2, %xmm0
-         mulpd %xmm3, %xmm1
-         addpd %xmm1, %xmm0
+         cmppd $$0, %xmm1, %xmm0
          movupd %xmm0, ($0)"
-              :: "r"(dst_ptr + i), "r"(a_ptr + i), "r"(b_ptr + i), "r"(alpha_ptr), "r"(beta_ptr)
-              : "xmm0", "xmm1", "xmm2", "xmm3", "memory"
-              : "volatile"
-      )
-      i += VECTOR_WIDTH_F64
-    end
-
-    while i < n
-      dst[i] = alpha * a[i] + beta * b[i]
-      i += 1
-    end
-  end
-
-  def sum(a : Slice(Float64)) : Float64
-    n = a.size
-    a_ptr = a.to_unsafe
-
-    acc = StaticArray[0.0_f64, 0.0_f64]
-    acc_ptr = acc.to_unsafe
-
-    i = 0
-    while i + VECTOR_WIDTH_F64 <= n
-      asm(
-        "movupd ($0), %xmm0
-         movupd ($1), %xmm1
-         addpd %xmm1, %xmm0
-         movupd %xmm0, ($0)"
-              :: "r"(acc_ptr), "r"(a_ptr + i)
+              :: "r"(tmp.to_unsafe), "r"(a_ptr + i), "r"(b_ptr + i)
               : "xmm0", "xmm1", "memory"
               : "volatile"
       )
+      dst_mask[i] = tmp[0] != 0 ? 0xFF_u8 : 0x00_u8
+      dst_mask[i + 1] = tmp[1] != 0 ? 0xFF_u8 : 0x00_u8
       i += VECTOR_WIDTH_F64
     end
 
-    result = acc[0] + acc[1]
-
     while i < n
-      result += a[i]
+      dst_mask[i] = a[i] == b[i] ? 0xFF_u8 : 0x00_u8
       i += 1
     end
-
-    result
   end
 
-  def dot(a : Slice(Float64), b : Slice(Float64)) : Float64
-    raise ArgumentError.new("length mismatch") unless a.size == b.size
-    n = a.size
+  def cmp_ne(dst_mask : Slice(UInt8), a : Slice(Float64), b : Slice(Float64)) : Nil
+    n = check_len(dst_mask, a, b)
     a_ptr = a.to_unsafe
     b_ptr = b.to_unsafe
 
-    acc = StaticArray[0.0_f64, 0.0_f64]
-    acc_ptr = acc.to_unsafe
-
     i = 0
     while i + VECTOR_WIDTH_F64 <= n
+      tmp = uninitialized StaticArray(UInt64, 2)
       asm(
-        "movupd ($0), %xmm0
-         movupd ($1), %xmm1
-         movupd ($2), %xmm2
-         mulpd %xmm2, %xmm1
-         addpd %xmm1, %xmm0
+        "movupd ($1), %xmm0
+         movupd ($2), %xmm1
+         cmppd $$4, %xmm1, %xmm0
          movupd %xmm0, ($0)"
-              :: "r"(acc_ptr), "r"(a_ptr + i), "r"(b_ptr + i)
-              : "xmm0", "xmm1", "xmm2", "memory"
+              :: "r"(tmp.to_unsafe), "r"(a_ptr + i), "r"(b_ptr + i)
+              : "xmm0", "xmm1", "memory"
               : "volatile"
       )
+      dst_mask[i] = tmp[0] != 0 ? 0xFF_u8 : 0x00_u8
+      dst_mask[i + 1] = tmp[1] != 0 ? 0xFF_u8 : 0x00_u8
       i += VECTOR_WIDTH_F64
     end
 
-    result = acc[0] + acc[1]
-
     while i < n
-      result += a[i] * b[i]
+      dst_mask[i] = a[i] != b[i] ? 0xFF_u8 : 0x00_u8
       i += 1
     end
-
-    result
   end
 
+  @[AlwaysInline]
+  def cmp_lt(dst_mask : Slice(UInt8), a : Slice(Float64), b : Slice(Float64)) : Nil
+    # SSE2 cmp_lt is slower than scalar for Float64
+    SIMD::SCALAR_FALLBACK.cmp_lt(dst_mask, a, b)
+  end
+
+  @[AlwaysInline]
+  def cmp_le(dst_mask : Slice(UInt8), a : Slice(Float64), b : Slice(Float64)) : Nil
+    # SSE2 cmp_le is slower than scalar for Float64
+    SIMD::SCALAR_FALLBACK.cmp_le(dst_mask, a, b)
+  end
+
+  @[AlwaysInline]
+  def cmp_ge(dst_mask : Slice(UInt8), a : Slice(Float64), b : Slice(Float64)) : Nil
+    cmp_le(dst_mask, b, a)
+  end
+
+  @[AlwaysInline]
+  def sum(a : Slice(Float64)) : Float64
+    # SSE2 sum is slower than scalar for Float64
+    SIMD::SCALAR_FALLBACK.sum(a)
+  end
+
+  @[AlwaysInline]
+  def dot(a : Slice(Float64), b : Slice(Float64)) : Float64
+    # SSE2 dot is slower than scalar for Float64
+    SIMD::SCALAR_FALLBACK.dot(a, b)
+  end
+
+  @[AlwaysInline]
   def max(a : Slice(Float64)) : Float64
-    raise ArgumentError.new("empty") if a.empty?
-    n = a.size
-    a_ptr = a.to_unsafe
-
-    if n < VECTOR_WIDTH_F64
-      return a[0]
-    end
-
-    max_vec = StaticArray(Float64, 2).new { |j| a[j] }
-    max_ptr = max_vec.to_unsafe
-
-    i = VECTOR_WIDTH_F64
-    while i + VECTOR_WIDTH_F64 <= n
-      asm(
-        "movupd ($0), %xmm0
-         movupd ($1), %xmm1
-         maxpd %xmm1, %xmm0
-         movupd %xmm0, ($0)"
-              :: "r"(max_ptr), "r"(a_ptr + i)
-              : "xmm0", "xmm1", "memory"
-              : "volatile"
-      )
-      i += VECTOR_WIDTH_F64
-    end
-
-    result = max_vec[0]
-    result = max_vec[1] if max_vec[1] > result
-
-    while i < n
-      result = a[i] if a[i] > result
-      i += 1
-    end
-
-    result
+    # SSE2 max_reduce is slower than scalar for Float64
+    SIMD::SCALAR_FALLBACK.max(a)
   end
 
+  @[AlwaysInline]
   def min(a : Slice(Float64)) : Float64
-    raise ArgumentError.new("empty") if a.empty?
-    n = a.size
-    a_ptr = a.to_unsafe
-
-    if n < VECTOR_WIDTH_F64
-      return a[0]
-    end
-
-    min_vec = StaticArray(Float64, 2).new { |j| a[j] }
-    min_ptr = min_vec.to_unsafe
-
-    i = VECTOR_WIDTH_F64
-    while i + VECTOR_WIDTH_F64 <= n
-      asm(
-        "movupd ($0), %xmm0
-         movupd ($1), %xmm1
-         minpd %xmm1, %xmm0
-         movupd %xmm0, ($0)"
-              :: "r"(min_ptr), "r"(a_ptr + i)
-              : "xmm0", "xmm1", "memory"
-              : "volatile"
-      )
-      i += VECTOR_WIDTH_F64
-    end
-
-    result = min_vec[0]
-    result = min_vec[1] if min_vec[1] < result
-
-    while i < n
-      result = a[i] if a[i] < result
-      i += 1
-    end
-
-    result
+    # SSE2 min_reduce is slower than scalar for Float64
+    SIMD::SCALAR_FALLBACK.min(a)
   end
 
   def cmp_gt_mask(dst_mask : Slice(UInt8), a : Slice(Float64), b : Slice(Float64)) : Nil
@@ -883,31 +1162,12 @@ class SIMD::SSE2 < SIMD::Base
     end
   end
 
-  def blend(dst : Slice(Float64), t : Slice(Float64), f : Slice(Float64), mask : Slice(UInt8)) : Nil
-    n = check_len(dst, t, f, mask)
-    i = 0
-    while i < n
-      dst[i] = mask[i] == 0 ? f[i] : t[i]
-      i += 1
-    end
-  end
-
+  @[AlwaysInline]
   def compress(dst : Slice(Float64), src : Slice(Float64), mask : Slice(UInt8)) : Int32
-    raise ArgumentError.new("length mismatch") unless src.size == mask.size
-    outp = 0
-    i = 0
-    n = src.size
-    while i < n
-      if mask[i] != 0
-        raise ArgumentError.new("dst too small") if outp >= dst.size
-        dst[outp] = src[i]
-        outp += 1
-      end
-      i += 1
-    end
-    outp
+    SIMD::SCALAR_FALLBACK.compress(dst, src, mask)
   end
 
+  @[AlwaysInline]
   def fir(dst : Slice(Float64), src : Slice(Float64), coeff : Slice(Float64)) : Nil
     SIMD::SCALAR_FALLBACK.fir(dst, src, coeff)
   end
@@ -918,190 +1178,87 @@ class SIMD::SSE2 < SIMD::Base
 
   VECTOR_WIDTH_64 = 2 # 128-bit / 64-bit = 2
 
+  @[AlwaysInline]
   def add(dst : Slice(UInt64), a : Slice(UInt64), b : Slice(UInt64)) : Nil
-    n = check_len(dst, a, b)
-    dst_ptr = dst.to_unsafe
-    a_ptr = a.to_unsafe
-    b_ptr = b.to_unsafe
-
-    i = 0
-    while i + VECTOR_WIDTH_64 <= n
-      asm(
-        "movdqu ($1), %xmm0
-         movdqu ($2), %xmm1
-         paddq %xmm1, %xmm0
-         movdqu %xmm0, ($0)"
-              :: "r"(dst_ptr + i), "r"(a_ptr + i), "r"(b_ptr + i)
-              : "xmm0", "xmm1", "memory"
-              : "volatile"
-      )
-      i += VECTOR_WIDTH_64
-    end
-
-    while i < n
-      dst[i] = a[i] &+ b[i]
-      i += 1
-    end
+    SIMD::SCALAR_FALLBACK.add(dst, a, b)
   end
 
+  @[AlwaysInline]
   def sub(dst : Slice(UInt64), a : Slice(UInt64), b : Slice(UInt64)) : Nil
-    n = check_len(dst, a, b)
-    dst_ptr = dst.to_unsafe
-    a_ptr = a.to_unsafe
-    b_ptr = b.to_unsafe
-
-    i = 0
-    while i + VECTOR_WIDTH_64 <= n
-      asm(
-        "movdqu ($1), %xmm0
-         movdqu ($2), %xmm1
-         psubq %xmm1, %xmm0
-         movdqu %xmm0, ($0)"
-              :: "r"(dst_ptr + i), "r"(a_ptr + i), "r"(b_ptr + i)
-              : "xmm0", "xmm1", "memory"
-              : "volatile"
-      )
-      i += VECTOR_WIDTH_64
-    end
-
-    while i < n
-      dst[i] = a[i] &- b[i]
-      i += 1
-    end
+    SIMD::SCALAR_FALLBACK.sub(dst, a, b)
   end
 
+  @[AlwaysInline]
   def mul(dst : Slice(UInt64), a : Slice(UInt64), b : Slice(UInt64)) : Nil
     # SSE2 lacks 64-bit multiply; use scalar
     SIMD::SCALAR_FALLBACK.mul(dst, a, b)
   end
 
+  @[AlwaysInline]
   def clamp(dst : Slice(UInt64), a : Slice(UInt64), lo : UInt64, hi : UInt64) : Nil
     SIMD::SCALAR_FALLBACK.clamp(dst, a, lo, hi)
   end
 
+  @[AlwaysInline]
   def sum(a : Slice(UInt64)) : UInt64
     SIMD::SCALAR_FALLBACK.sum(a)
   end
 
+  @[AlwaysInline]
   def max(a : Slice(UInt64)) : UInt64
     SIMD::SCALAR_FALLBACK.max(a)
   end
 
+  @[AlwaysInline]
   def min(a : Slice(UInt64)) : UInt64
     SIMD::SCALAR_FALLBACK.min(a)
   end
 
+  @[AlwaysInline]
   def bitwise_and(dst : Slice(UInt64), a : Slice(UInt64), b : Slice(UInt64)) : Nil
-    n = check_len(dst, a, b)
-    dst_ptr = dst.to_unsafe
-    a_ptr = a.to_unsafe
-    b_ptr = b.to_unsafe
-
-    i = 0
-    while i + VECTOR_WIDTH_64 <= n
-      asm(
-        "movdqu ($1), %xmm0
-         movdqu ($2), %xmm1
-         pand %xmm1, %xmm0
-         movdqu %xmm0, ($0)"
-              :: "r"(dst_ptr + i), "r"(a_ptr + i), "r"(b_ptr + i)
-              : "xmm0", "xmm1", "memory"
-              : "volatile"
-      )
-      i += VECTOR_WIDTH_64
-    end
-
-    while i < n
-      dst[i] = a[i] & b[i]
-      i += 1
-    end
+    SIMD::SCALAR_FALLBACK.bitwise_and(dst, a, b)
   end
 
+  @[AlwaysInline]
   def bitwise_or(dst : Slice(UInt64), a : Slice(UInt64), b : Slice(UInt64)) : Nil
-    n = check_len(dst, a, b)
-    dst_ptr = dst.to_unsafe
-    a_ptr = a.to_unsafe
-    b_ptr = b.to_unsafe
-
-    i = 0
-    while i + VECTOR_WIDTH_64 <= n
-      asm(
-        "movdqu ($1), %xmm0
-         movdqu ($2), %xmm1
-         por %xmm1, %xmm0
-         movdqu %xmm0, ($0)"
-              :: "r"(dst_ptr + i), "r"(a_ptr + i), "r"(b_ptr + i)
-              : "xmm0", "xmm1", "memory"
-              : "volatile"
-      )
-      i += VECTOR_WIDTH_64
-    end
-
-    while i < n
-      dst[i] = a[i] | b[i]
-      i += 1
-    end
+    SIMD::SCALAR_FALLBACK.bitwise_or(dst, a, b)
   end
 
+  @[AlwaysInline]
   def xor(dst : Slice(UInt64), a : Slice(UInt64), b : Slice(UInt64)) : Nil
-    n = check_len(dst, a, b)
-    dst_ptr = dst.to_unsafe
-    a_ptr = a.to_unsafe
-    b_ptr = b.to_unsafe
-
-    i = 0
-    while i + VECTOR_WIDTH_64 <= n
-      asm(
-        "movdqu ($1), %xmm0
-         movdqu ($2), %xmm1
-         pxor %xmm1, %xmm0
-         movdqu %xmm0, ($0)"
-              :: "r"(dst_ptr + i), "r"(a_ptr + i), "r"(b_ptr + i)
-              : "xmm0", "xmm1", "memory"
-              : "volatile"
-      )
-      i += VECTOR_WIDTH_64
-    end
-
-    while i < n
-      dst[i] = a[i] ^ b[i]
-      i += 1
-    end
+    SIMD::SCALAR_FALLBACK.xor(dst, a, b)
   end
 
+  @[AlwaysInline]
   def bswap(dst : Slice(UInt64), a : Slice(UInt64)) : Nil
     SIMD::SCALAR_FALLBACK.bswap(dst, a)
   end
 
+  @[AlwaysInline]
   def cmp_gt_mask(dst_mask : Slice(UInt8), a : Slice(UInt64), b : Slice(UInt64)) : Nil
     SIMD::SCALAR_FALLBACK.cmp_gt_mask(dst_mask, a, b)
-  end
-
-  def blend(dst : Slice(UInt64), t : Slice(UInt64), f : Slice(UInt64), mask : Slice(UInt8)) : Nil
-    n = check_len(dst, t, f, mask)
-    i = 0
-    while i < n
-      dst[i] = mask[i] == 0 ? f[i] : t[i]
-      i += 1
-    end
   end
 
   # ============================================================
   # INT64 OPERATIONS (signed-specific)
   # ============================================================
 
+  @[AlwaysInline]
   def clamp(dst : Slice(Int64), a : Slice(Int64), lo : Int64, hi : Int64) : Nil
     SIMD::SCALAR_FALLBACK.clamp(dst, a, lo, hi)
   end
 
+  @[AlwaysInline]
   def max(a : Slice(Int64)) : Int64
     SIMD::SCALAR_FALLBACK.max(a)
   end
 
+  @[AlwaysInline]
   def min(a : Slice(Int64)) : Int64
     SIMD::SCALAR_FALLBACK.min(a)
   end
 
+  @[AlwaysInline]
   def cmp_gt_mask(dst_mask : Slice(UInt8), a : Slice(Int64), b : Slice(Int64)) : Nil
     SIMD::SCALAR_FALLBACK.cmp_gt_mask(dst_mask, a, b)
   end
@@ -1162,84 +1319,60 @@ class SIMD::SSE2 < SIMD::Base
     end
   end
 
+  @[AlwaysInline]
   def mul(dst : Slice(UInt32), a : Slice(UInt32), b : Slice(UInt32)) : Nil
     # SSE2 pmuludq only produces 64-bit results; scalar is simpler
     SIMD::SCALAR_FALLBACK.mul(dst, a, b)
   end
 
+  @[AlwaysInline]
   def clamp(dst : Slice(UInt32), a : Slice(UInt32), lo : UInt32, hi : UInt32) : Nil
     SIMD::SCALAR_FALLBACK.clamp(dst, a, lo, hi)
   end
 
+  @[AlwaysInline]
   def sum(a : Slice(UInt32)) : UInt32
     SIMD::SCALAR_FALLBACK.sum(a)
   end
 
+  @[AlwaysInline]
   def max(a : Slice(UInt32)) : UInt32
     SIMD::SCALAR_FALLBACK.max(a)
   end
 
+  @[AlwaysInline]
   def min(a : Slice(UInt32)) : UInt32
     SIMD::SCALAR_FALLBACK.min(a)
   end
 
+  @[AlwaysInline]
   def cmp_gt_mask(dst_mask : Slice(UInt8), a : Slice(UInt32), b : Slice(UInt32)) : Nil
     SIMD::SCALAR_FALLBACK.cmp_gt_mask(dst_mask, a, b)
-  end
-
-  def blend(dst : Slice(UInt32), t : Slice(UInt32), f : Slice(UInt32), mask : Slice(UInt8)) : Nil
-    n = check_len(dst, t, f, mask)
-    i = 0
-    while i < n
-      dst[i] = mask[i] == 0 ? f[i] : t[i]
-      i += 1
-    end
   end
 
   # ============================================================
   # INT32 OPERATIONS (signed-specific)
   # ============================================================
 
+  @[AlwaysInline]
   def clamp(dst : Slice(Int32), a : Slice(Int32), lo : Int32, hi : Int32) : Nil
     SIMD::SCALAR_FALLBACK.clamp(dst, a, lo, hi)
   end
 
+  @[AlwaysInline]
   def max(a : Slice(Int32)) : Int32
     SIMD::SCALAR_FALLBACK.max(a)
   end
 
+  @[AlwaysInline]
   def min(a : Slice(Int32)) : Int32
     SIMD::SCALAR_FALLBACK.min(a)
   end
 
+  @[AlwaysInline]
   def cmp_gt_mask(dst_mask : Slice(UInt8), a : Slice(Int32), b : Slice(Int32)) : Nil
-    n = check_len(dst_mask, a, b)
-    a_ptr = a.to_unsafe
-    b_ptr = b.to_unsafe
-
-    i = 0
-    while i + VECTOR_WIDTH <= n
-      mask_tmp = uninitialized StaticArray(Int32, 4)
-      asm(
-        "movdqu ($1), %xmm0
-         movdqu ($2), %xmm1
-         pcmpgtd %xmm1, %xmm0
-         movdqu %xmm0, ($0)"
-              :: "r"(mask_tmp.to_unsafe), "r"(a_ptr + i), "r"(b_ptr + i)
-              : "xmm0", "xmm1", "memory"
-              : "volatile"
-      )
-      dst_mask[i] = mask_tmp[0] != 0 ? 0xFF_u8 : 0x00_u8
-      dst_mask[i + 1] = mask_tmp[1] != 0 ? 0xFF_u8 : 0x00_u8
-      dst_mask[i + 2] = mask_tmp[2] != 0 ? 0xFF_u8 : 0x00_u8
-      dst_mask[i + 3] = mask_tmp[3] != 0 ? 0xFF_u8 : 0x00_u8
-      i += VECTOR_WIDTH
-    end
-
-    while i < n
-      dst_mask[i] = a[i] > b[i] ? 0xFF_u8 : 0x00_u8
-      i += 1
-    end
+    # SSE2 cmp_gt_mask is slower than scalar for Int32
+    SIMD::SCALAR_FALLBACK.cmp_gt_mask(dst_mask, a, b)
   end
 
   # ============================================================
@@ -1326,18 +1459,22 @@ class SIMD::SSE2 < SIMD::Base
     end
   end
 
+  @[AlwaysInline]
   def clamp(dst : Slice(UInt16), a : Slice(UInt16), lo : UInt16, hi : UInt16) : Nil
     SIMD::SCALAR_FALLBACK.clamp(dst, a, lo, hi)
   end
 
+  @[AlwaysInline]
   def sum(a : Slice(UInt16)) : UInt16
     SIMD::SCALAR_FALLBACK.sum(a)
   end
 
+  @[AlwaysInline]
   def max(a : Slice(UInt16)) : UInt16
     SIMD::SCALAR_FALLBACK.max(a)
   end
 
+  @[AlwaysInline]
   def min(a : Slice(UInt16)) : UInt16
     SIMD::SCALAR_FALLBACK.min(a)
   end
@@ -1420,134 +1557,41 @@ class SIMD::SSE2 < SIMD::Base
     end
   end
 
+  @[AlwaysInline]
   def bswap(dst : Slice(UInt16), a : Slice(UInt16)) : Nil
     SIMD::SCALAR_FALLBACK.bswap(dst, a)
   end
 
+  @[AlwaysInline]
   def cmp_gt_mask(dst_mask : Slice(UInt8), a : Slice(UInt16), b : Slice(UInt16)) : Nil
     SIMD::SCALAR_FALLBACK.cmp_gt_mask(dst_mask, a, b)
-  end
-
-  def blend(dst : Slice(UInt16), t : Slice(UInt16), f : Slice(UInt16), mask : Slice(UInt8)) : Nil
-    n = check_len(dst, t, f, mask)
-    i = 0
-    while i < n
-      dst[i] = mask[i] == 0 ? f[i] : t[i]
-      i += 1
-    end
   end
 
   # ============================================================
   # INT16 OPERATIONS (signed-specific)
   # ============================================================
 
+  @[AlwaysInline]
   def clamp(dst : Slice(Int16), a : Slice(Int16), lo : Int16, hi : Int16) : Nil
     SIMD::SCALAR_FALLBACK.clamp(dst, a, lo, hi)
   end
 
+  @[AlwaysInline]
   def max(a : Slice(Int16)) : Int16
-    raise ArgumentError.new("empty") if a.empty?
-    n = a.size
-    a_ptr = a.to_unsafe
-
-    if n < VECTOR_WIDTH_16
-      m = a[0]
-      (1...n).each { |j| m = a[j] if a[j] > m }
-      return m
-    end
-
-    max_vec = StaticArray(Int16, 8).new { |j| a[j] }
-    max_ptr = max_vec.to_unsafe
-
-    i = VECTOR_WIDTH_16
-    while i + VECTOR_WIDTH_16 <= n
-      asm(
-        "movdqu ($0), %xmm0
-         movdqu ($1), %xmm1
-         pmaxsw %xmm1, %xmm0
-         movdqu %xmm0, ($0)"
-              :: "r"(max_ptr), "r"(a_ptr + i)
-              : "xmm0", "xmm1", "memory"
-              : "volatile"
-      )
-      i += VECTOR_WIDTH_16
-    end
-
-    result = max_vec[0]
-    (1...8).each { |j| result = max_vec[j] if max_vec[j] > result }
-
-    while i < n
-      result = a[i] if a[i] > result
-      i += 1
-    end
-
-    result
+    # SSE2 max_reduce is slower than scalar for Int16
+    SIMD::SCALAR_FALLBACK.max(a)
   end
 
+  @[AlwaysInline]
   def min(a : Slice(Int16)) : Int16
-    raise ArgumentError.new("empty") if a.empty?
-    n = a.size
-    a_ptr = a.to_unsafe
-
-    if n < VECTOR_WIDTH_16
-      m = a[0]
-      (1...n).each { |j| m = a[j] if a[j] < m }
-      return m
-    end
-
-    min_vec = StaticArray(Int16, 8).new { |j| a[j] }
-    min_ptr = min_vec.to_unsafe
-
-    i = VECTOR_WIDTH_16
-    while i + VECTOR_WIDTH_16 <= n
-      asm(
-        "movdqu ($0), %xmm0
-         movdqu ($1), %xmm1
-         pminsw %xmm1, %xmm0
-         movdqu %xmm0, ($0)"
-              :: "r"(min_ptr), "r"(a_ptr + i)
-              : "xmm0", "xmm1", "memory"
-              : "volatile"
-      )
-      i += VECTOR_WIDTH_16
-    end
-
-    result = min_vec[0]
-    (1...8).each { |j| result = min_vec[j] if min_vec[j] < result }
-
-    while i < n
-      result = a[i] if a[i] < result
-      i += 1
-    end
-
-    result
+    # SSE2 min_reduce is slower than scalar for Int16
+    SIMD::SCALAR_FALLBACK.min(a)
   end
 
+  @[AlwaysInline]
   def cmp_gt_mask(dst_mask : Slice(UInt8), a : Slice(Int16), b : Slice(Int16)) : Nil
-    n = check_len(dst_mask, a, b)
-    a_ptr = a.to_unsafe
-    b_ptr = b.to_unsafe
-
-    i = 0
-    while i + VECTOR_WIDTH_16 <= n
-      mask_tmp = uninitialized StaticArray(Int16, 8)
-      asm(
-        "movdqu ($1), %xmm0
-         movdqu ($2), %xmm1
-         pcmpgtw %xmm1, %xmm0
-         movdqu %xmm0, ($0)"
-              :: "r"(mask_tmp.to_unsafe), "r"(a_ptr + i), "r"(b_ptr + i)
-              : "xmm0", "xmm1", "memory"
-              : "volatile"
-      )
-      (0...8).each { |j| dst_mask[i + j] = mask_tmp[j] != 0 ? 0xFF_u8 : 0x00_u8 }
-      i += VECTOR_WIDTH_16
-    end
-
-    while i < n
-      dst_mask[i] = a[i] > b[i] ? 0xFF_u8 : 0x00_u8
-      i += 1
-    end
+    # SSE2 cmp_gt_mask is slower than scalar for Int16
+    SIMD::SCALAR_FALLBACK.cmp_gt_mask(dst_mask, a, b)
   end
 
   # ============================================================
@@ -1556,30 +1600,9 @@ class SIMD::SSE2 < SIMD::Base
 
   VECTOR_WIDTH_8 = 16 # 128-bit / 8-bit = 16
 
+  @[AlwaysInline]
   def add(dst : Slice(UInt8), a : Slice(UInt8), b : Slice(UInt8)) : Nil
-    n = check_len(dst, a, b)
-    dst_ptr = dst.to_unsafe
-    a_ptr = a.to_unsafe
-    b_ptr = b.to_unsafe
-
-    i = 0
-    while i + VECTOR_WIDTH_8 <= n
-      asm(
-        "movdqu ($1), %xmm0
-         movdqu ($2), %xmm1
-         paddb %xmm1, %xmm0
-         movdqu %xmm0, ($0)"
-              :: "r"(dst_ptr + i), "r"(a_ptr + i), "r"(b_ptr + i)
-              : "xmm0", "xmm1", "memory"
-              : "volatile"
-      )
-      i += VECTOR_WIDTH_8
-    end
-
-    while i < n
-      dst[i] = a[i] &+ b[i]
-      i += 1
-    end
+    SIMD::SCALAR_FALLBACK.add(dst, a, b)
   end
 
   def sub(dst : Slice(UInt8), a : Slice(UInt8), b : Slice(UInt8)) : Nil
@@ -1608,95 +1631,32 @@ class SIMD::SSE2 < SIMD::Base
     end
   end
 
+  @[AlwaysInline]
   def mul(dst : Slice(UInt8), a : Slice(UInt8), b : Slice(UInt8)) : Nil
     # SSE2 lacks 8-bit multiply; use scalar
     SIMD::SCALAR_FALLBACK.mul(dst, a, b)
   end
 
+  @[AlwaysInline]
   def clamp(dst : Slice(UInt8), a : Slice(UInt8), lo : UInt8, hi : UInt8) : Nil
     SIMD::SCALAR_FALLBACK.clamp(dst, a, lo, hi)
   end
 
+  @[AlwaysInline]
   def sum(a : Slice(UInt8)) : UInt8
     SIMD::SCALAR_FALLBACK.sum(a)
   end
 
+  @[AlwaysInline]
   def max(a : Slice(UInt8)) : UInt8
-    raise ArgumentError.new("empty") if a.empty?
-    n = a.size
-    a_ptr = a.to_unsafe
-
-    if n < VECTOR_WIDTH_8
-      m = a[0]
-      (1...n).each { |j| m = a[j] if a[j] > m }
-      return m
-    end
-
-    max_vec = StaticArray(UInt8, 16).new { |j| a[j] }
-    max_ptr = max_vec.to_unsafe
-
-    i = VECTOR_WIDTH_8
-    while i + VECTOR_WIDTH_8 <= n
-      asm(
-        "movdqu ($0), %xmm0
-         movdqu ($1), %xmm1
-         pmaxub %xmm1, %xmm0
-         movdqu %xmm0, ($0)"
-              :: "r"(max_ptr), "r"(a_ptr + i)
-              : "xmm0", "xmm1", "memory"
-              : "volatile"
-      )
-      i += VECTOR_WIDTH_8
-    end
-
-    result = max_vec[0]
-    (1...16).each { |j| result = max_vec[j] if max_vec[j] > result }
-
-    while i < n
-      result = a[i] if a[i] > result
-      i += 1
-    end
-
-    result
+    # benchmarks show scalar is faster
+    SIMD::SCALAR_FALLBACK.max(a)
   end
 
+  @[AlwaysInline]
   def min(a : Slice(UInt8)) : UInt8
-    raise ArgumentError.new("empty") if a.empty?
-    n = a.size
-    a_ptr = a.to_unsafe
-
-    if n < VECTOR_WIDTH_8
-      m = a[0]
-      (1...n).each { |j| m = a[j] if a[j] < m }
-      return m
-    end
-
-    min_vec = StaticArray(UInt8, 16).new { |j| a[j] }
-    min_ptr = min_vec.to_unsafe
-
-    i = VECTOR_WIDTH_8
-    while i + VECTOR_WIDTH_8 <= n
-      asm(
-        "movdqu ($0), %xmm0
-         movdqu ($1), %xmm1
-         pminub %xmm1, %xmm0
-         movdqu %xmm0, ($0)"
-              :: "r"(min_ptr), "r"(a_ptr + i)
-              : "xmm0", "xmm1", "memory"
-              : "volatile"
-      )
-      i += VECTOR_WIDTH_8
-    end
-
-    result = min_vec[0]
-    (1...16).each { |j| result = min_vec[j] if min_vec[j] < result }
-
-    while i < n
-      result = a[i] if a[i] < result
-      i += 1
-    end
-
-    result
+    # benchmarks show scalar is faster
+    SIMD::SCALAR_FALLBACK.min(a)
   end
 
   def bitwise_and(dst : Slice(UInt8), a : Slice(UInt8), b : Slice(UInt8)) : Nil
@@ -1777,116 +1737,59 @@ class SIMD::SSE2 < SIMD::Base
     end
   end
 
+  @[AlwaysInline]
   def cmp_gt_mask(dst_mask : Slice(UInt8), a : Slice(UInt8), b : Slice(UInt8)) : Nil
     SIMD::SCALAR_FALLBACK.cmp_gt_mask(dst_mask, a, b)
   end
 
+  @[AlwaysInline]
   def blend(dst : Slice(UInt8), t : Slice(UInt8), f : Slice(UInt8), mask : Slice(UInt8)) : Nil
-    n = check_len(dst, t, f, mask)
-    i = 0
-    while i < n
-      dst[i] = mask[i] == 0 ? f[i] : t[i]
-      i += 1
-    end
+    SIMD::SCALAR_FALLBACK.blend(dst, t, f, mask)
   end
 
   # ============================================================
   # INT8 OPERATIONS (signed-specific)
   # ============================================================
 
+  @[AlwaysInline]
   def clamp(dst : Slice(Int8), a : Slice(Int8), lo : Int8, hi : Int8) : Nil
     SIMD::SCALAR_FALLBACK.clamp(dst, a, lo, hi)
   end
 
+  @[AlwaysInline]
   def max(a : Slice(Int8)) : Int8
     SIMD::SCALAR_FALLBACK.max(a)
   end
 
+  @[AlwaysInline]
   def min(a : Slice(Int8)) : Int8
     SIMD::SCALAR_FALLBACK.min(a)
   end
 
+  @[AlwaysInline]
   def cmp_gt_mask(dst_mask : Slice(UInt8), a : Slice(Int8), b : Slice(Int8)) : Nil
-    n = check_len(dst_mask, a, b)
-    a_ptr = a.to_unsafe
-    b_ptr = b.to_unsafe
-
-    i = 0
-    while i + VECTOR_WIDTH_8 <= n
-      mask_tmp = uninitialized StaticArray(Int8, 16)
-      asm(
-        "movdqu ($1), %xmm0
-         movdqu ($2), %xmm1
-         pcmpgtb %xmm1, %xmm0
-         movdqu %xmm0, ($0)"
-              :: "r"(mask_tmp.to_unsafe), "r"(a_ptr + i), "r"(b_ptr + i)
-              : "xmm0", "xmm1", "memory"
-              : "volatile"
-      )
-      (0...16).each { |j| dst_mask[i + j] = mask_tmp[j] != 0 ? 0xFF_u8 : 0x00_u8 }
-      i += VECTOR_WIDTH_8
-    end
-
-    while i < n
-      dst_mask[i] = a[i] > b[i] ? 0xFF_u8 : 0x00_u8
-      i += 1
-    end
+    SIMD::SCALAR_FALLBACK.cmp_gt_mask(dst_mask, a, b)
   end
 
   # ============================================================
   # CONVERSION OPERATIONS (new)
   # ============================================================
 
+  @[AlwaysInline]
   def convert(dst : Slice(Float64), src : Slice(Int32)) : Nil
-    n = check_len(dst, src)
-    dst_ptr = dst.to_unsafe
-    src_ptr = src.to_unsafe
-
-    i = 0
-    while i + VECTOR_WIDTH_F64 <= n
-      asm(
-        "movq ($1), %xmm0
-         cvtdq2pd %xmm0, %xmm0
-         movupd %xmm0, ($0)"
-              :: "r"(dst_ptr + i), "r"(src_ptr + i)
-              : "xmm0", "memory"
-              : "volatile"
-      )
-      i += VECTOR_WIDTH_F64
-    end
-
-    while i < n
-      dst[i] = src[i].to_f64
-      i += 1
-    end
+    # SSE2 convert Int32->Float64 is slower than scalar
+    SIMD::SCALAR_FALLBACK.convert(dst, src)
   end
 
+  @[AlwaysInline]
   def convert(dst : Slice(Float64), src : Slice(Int16)) : Nil
     SIMD::SCALAR_FALLBACK.convert(dst, src)
   end
 
+  @[AlwaysInline]
   def convert(dst : Slice(Float64), src : Slice(Float32)) : Nil
-    n = check_len(dst, src)
-    dst_ptr = dst.to_unsafe
-    src_ptr = src.to_unsafe
-
-    i = 0
-    while i + VECTOR_WIDTH_F64 <= n
-      asm(
-        "movq ($1), %xmm0
-         cvtps2pd %xmm0, %xmm0
-         movupd %xmm0, ($0)"
-              :: "r"(dst_ptr + i), "r"(src_ptr + i)
-              : "xmm0", "memory"
-              : "volatile"
-      )
-      i += VECTOR_WIDTH_F64
-    end
-
-    while i < n
-      dst[i] = src[i].to_f64
-      i += 1
-    end
+    # SSE2 convert Float32->Float64 is slower than scalar
+    SIMD::SCALAR_FALLBACK.convert(dst, src)
   end
 
   def convert(dst : Slice(Float32), src : Slice(Float64)) : Nil

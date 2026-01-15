@@ -7,8 +7,8 @@ development_dependencies:
 
 # compile target
 targets:
-  benchmark:
-    main: examples/benchmark.cr
+  benchmarker:
+    main: examples/benchmarker.cr
 
 authors:
   - Stephen von Takach <steve@place.technology>

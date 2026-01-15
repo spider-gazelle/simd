@@ -299,64 +299,47 @@ describe "SIMD Float64 operations" do
     end
   end
 
-  describe "blend" do
-    it "scalar implementation" do
-      simd = SIMD.scalar
-      t = Slice[1.0_f64, 2.0_f64, 3.0_f64, 4.0_f64]
-      f = Slice[10.0_f64, 20.0_f64, 30.0_f64, 40.0_f64]
-      mask = Slice[0xFF_u8, 0x00_u8, 0xFF_u8, 0x00_u8]
-      dst = Slice(Float64).new(t.size)
+  describe "additional operations" do
+    it "implements math ops and comparisons" do
+      ([SIMD.scalar] + check_implementations).each do |simd|
+        a = Slice[1.0_f64, 4.0_f64, -9.0_f64, 16.0_f64]
+        b = Slice[2.0_f64, 2.0_f64, 3.0_f64, 4.0_f64]
+        dst = Slice(Float64).new(a.size)
 
-      simd.blend(dst, t, f, mask)
+        simd.div(dst, a, b)
+        dst.should eq Slice[0.5_f64, 2.0_f64, -3.0_f64, 4.0_f64]
 
-      dst[0].should eq 1.0_f64
-      dst[1].should eq 20.0_f64
-      dst[2].should eq 3.0_f64
-      dst[3].should eq 40.0_f64
-    end
+        simd.abs(dst, a)
+        dst.should eq Slice[1.0_f64, 4.0_f64, 9.0_f64, 16.0_f64]
 
-    it "hardware implementations match scalar" do
-      check_implementations.each do |simd|
-        t = Slice[1.0_f64, 2.0_f64, 3.0_f64, 4.0_f64]
-        f = Slice[10.0_f64, 20.0_f64, 30.0_f64, 40.0_f64]
-        mask = Slice[0xFF_u8, 0x00_u8, 0xFF_u8, 0x00_u8]
-        dst = Slice(Float64).new(t.size)
+        simd.neg(dst, a)
+        dst.should eq Slice[-1.0_f64, -4.0_f64, 9.0_f64, -16.0_f64]
 
-        simd.blend(dst, t, f, mask)
+        simd.sqrt(dst, Slice[0.0_f64, 1.0_f64, 4.0_f64, 9.0_f64])
+        dst.should eq Slice[0.0_f64, 1.0_f64, 2.0_f64, 3.0_f64]
 
-        dst[0].should eq 1.0_f64
-        dst[1].should eq 20.0_f64
-        dst[2].should eq 3.0_f64
-        dst[3].should eq 40.0_f64
-      end
-    end
-  end
+        simd.rsqrt(dst, Slice[1.0_f64, 4.0_f64, 9.0_f64, 16.0_f64])
+        approx_eq_slice(dst, Slice[1.0_f64, 0.5_f64, (1.0_f64 / 3.0_f64), 0.25_f64]).should be_true
 
-  describe "compress" do
-    it "scalar implementation" do
-      simd = SIMD.scalar
-      src = Slice[1.0_f64, 2.0_f64, 3.0_f64, 4.0_f64]
-      mask = Slice[0xFF_u8, 0x00_u8, 0xFF_u8, 0x00_u8]
-      dst = Slice(Float64).new(src.size)
+        c = Slice[-1.2_f64, -1.5_f64, -1.6_f64, 1.2_f64, 2.5_f64, 3.5_f64]
+        tmp = Slice(Float64).new(c.size)
 
-      count = simd.compress(dst, src, mask)
+        simd.floor(tmp, c)
+        tmp.should eq Slice[-2.0_f64, -2.0_f64, -2.0_f64, 1.0_f64, 2.0_f64, 3.0_f64]
 
-      count.should eq 2
-      dst[0].should eq 1.0_f64
-      dst[1].should eq 3.0_f64
-    end
+        simd.ceil(tmp, c)
+        tmp.should eq Slice[-1.0_f64, -1.0_f64, -1.0_f64, 2.0_f64, 3.0_f64, 4.0_f64]
 
-    it "hardware implementations match scalar" do
-      check_implementations.each do |simd|
-        src = Slice[1.0_f64, 2.0_f64, 3.0_f64, 4.0_f64]
-        mask = Slice[0xFF_u8, 0x00_u8, 0xFF_u8, 0x00_u8]
-        dst = Slice(Float64).new(src.size)
+        simd.round(tmp, c)
+        tmp.should eq Slice[-1.0_f64, -2.0_f64, -2.0_f64, 1.0_f64, 2.0_f64, 4.0_f64]
 
-        count = simd.compress(dst, src, mask)
-
-        count.should eq 2
-        dst[0].should eq 1.0_f64
-        dst[1].should eq 3.0_f64
+        aa = Slice[1.0_f64, 2.0_f64, 2.0_f64, 4.0_f64]
+        bb = Slice[1.0_f64, 3.0_f64, 2.0_f64, 0.0_f64]
+        mask = Slice(UInt8).new(aa.size)
+        simd.cmp_eq(mask, aa, bb)
+        mask.should eq Slice[0xFF_u8, 0x00_u8, 0xFF_u8, 0x00_u8]
+        simd.cmp_ge(mask, aa, bb)
+        mask.should eq Slice[0xFF_u8, 0x00_u8, 0xFF_u8, 0xFF_u8]
       end
     end
   end

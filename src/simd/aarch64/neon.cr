@@ -18,6 +18,105 @@ class SIMD::NEON < SIMD::Base
     n
   end
 
+  # ============================================================
+  # Additional operations (non-float / generic)
+  # ============================================================
+
+  def abs(dst : Slice(UInt8), a : Slice(UInt8)) : Nil
+    Log.trace { "abs(UInt8) forwarding to scalar (faster)" }
+    SIMD::SCALAR_FALLBACK.abs(dst, a)
+  end
+
+  def abs(dst : Slice(Int8), a : Slice(Int8)) : Nil
+    Log.trace { "abs(Int8) forwarding to scalar (faster)" }
+    SIMD::SCALAR_FALLBACK.abs(dst, a)
+  end
+
+  def abs(dst : Slice(UInt16), a : Slice(UInt16)) : Nil
+    Log.trace { "abs(UInt16) forwarding to scalar (faster)" }
+    SIMD::SCALAR_FALLBACK.abs(dst, a)
+  end
+
+  def abs(dst : Slice(Int16), a : Slice(Int16)) : Nil
+    Log.trace { "abs(Int16) forwarding to scalar (faster)" }
+    SIMD::SCALAR_FALLBACK.abs(dst, a)
+  end
+
+  def abs(dst : Slice(UInt32), a : Slice(UInt32)) : Nil
+    Log.trace { "abs(UInt32) forwarding to scalar (faster)" }
+    SIMD::SCALAR_FALLBACK.abs(dst, a)
+  end
+
+  def abs(dst : Slice(Int32), a : Slice(Int32)) : Nil
+    Log.trace { "abs(Int32) forwarding to scalar (faster)" }
+    SIMD::SCALAR_FALLBACK.abs(dst, a)
+  end
+
+  def abs(dst : Slice(UInt64), a : Slice(UInt64)) : Nil
+    Log.trace { "abs(UInt64) forwarding to scalar (faster)" }
+    SIMD::SCALAR_FALLBACK.abs(dst, a)
+  end
+
+  def abs(dst : Slice(Int64), a : Slice(Int64)) : Nil
+    Log.trace { "abs(Int64) forwarding to scalar (faster)" }
+    SIMD::SCALAR_FALLBACK.abs(dst, a)
+  end
+
+  def neg(dst : Slice(Int8), a : Slice(Int8)) : Nil
+    Log.trace { "neg(Int8) forwarding to scalar (faster)" }
+    SIMD::SCALAR_FALLBACK.neg(dst, a)
+  end
+
+  def neg(dst : Slice(Int16), a : Slice(Int16)) : Nil
+    Log.trace { "neg(Int16) forwarding to scalar (faster)" }
+    SIMD::SCALAR_FALLBACK.neg(dst, a)
+  end
+
+  def neg(dst : Slice(Int32), a : Slice(Int32)) : Nil
+    Log.trace { "neg(Int32) forwarding to scalar (faster)" }
+    SIMD::SCALAR_FALLBACK.neg(dst, a)
+  end
+
+  def neg(dst : Slice(Int64), a : Slice(Int64)) : Nil
+    Log.trace { "neg(Int64) forwarding to scalar (faster)" }
+    SIMD::SCALAR_FALLBACK.neg(dst, a)
+  end
+
+  def min(dst : Slice(T), a : Slice(T), b : Slice(T)) : Nil forall T
+    Log.trace { "min forwarding to scalar (faster)" }
+    SIMD::SCALAR_FALLBACK.min(dst, a, b)
+  end
+
+  def max(dst : Slice(T), a : Slice(T), b : Slice(T)) : Nil forall T
+    Log.trace { "max forwarding to scalar (faster)" }
+    SIMD::SCALAR_FALLBACK.max(dst, a, b)
+  end
+
+  def cmp_eq(dst_mask : Slice(UInt8), a : Slice(T), b : Slice(T)) : Nil forall T
+    Log.trace { "cmp_eq forwarding to scalar (faster)" }
+    SIMD::SCALAR_FALLBACK.cmp_eq(dst_mask, a, b)
+  end
+
+  def cmp_ne(dst_mask : Slice(UInt8), a : Slice(T), b : Slice(T)) : Nil forall T
+    Log.trace { "cmp_ne forwarding to scalar (faster)" }
+    SIMD::SCALAR_FALLBACK.cmp_ne(dst_mask, a, b)
+  end
+
+  def cmp_lt(dst_mask : Slice(UInt8), a : Slice(T), b : Slice(T)) : Nil forall T
+    Log.trace { "cmp_lt forwarding to scalar (faster)" }
+    SIMD::SCALAR_FALLBACK.cmp_lt(dst_mask, a, b)
+  end
+
+  def cmp_le(dst_mask : Slice(UInt8), a : Slice(T), b : Slice(T)) : Nil forall T
+    Log.trace { "cmp_le forwarding to scalar (faster)" }
+    SIMD::SCALAR_FALLBACK.cmp_le(dst_mask, a, b)
+  end
+
+  def cmp_ge(dst_mask : Slice(UInt8), a : Slice(T), b : Slice(T)) : Nil forall T
+    Log.trace { "cmp_ge forwarding to scalar (faster)" }
+    SIMD::SCALAR_FALLBACK.cmp_ge(dst_mask, a, b)
+  end
+
   def add(dst : Slice(Float32), a : Slice(Float32), b : Slice(Float32)) : Nil
     n = check_len(dst, a, b)
     dst_ptr = dst.to_unsafe
@@ -190,6 +289,414 @@ class SIMD::NEON < SIMD::Base
 
     while i < n
       dst[i] = alpha * a[i] + beta * b[i]
+      i += 1
+    end
+  end
+
+  def div(dst : Slice(Float32), a : Slice(Float32), b : Slice(Float32)) : Nil
+    n = check_len(dst, a, b)
+    dst_ptr = dst.to_unsafe
+    a_ptr = a.to_unsafe
+    b_ptr = b.to_unsafe
+
+    i = 0
+    while i + VECTOR_WIDTH <= n
+      asm(
+        "ld1 {v0.4s}, [$1]
+         ld1 {v1.4s}, [$2]
+         fdiv v0.4s, v0.4s, v1.4s
+         st1 {v0.4s}, [$0]"
+              :: "r"(dst_ptr + i), "r"(a_ptr + i), "r"(b_ptr + i)
+              : "v0", "v1", "memory"
+              : "volatile"
+      )
+      i += VECTOR_WIDTH
+    end
+
+    while i < n
+      dst[i] = a[i] / b[i]
+      i += 1
+    end
+  end
+
+  def sqrt(dst : Slice(Float32), a : Slice(Float32)) : Nil
+    n = check_len(dst, a)
+    dst_ptr = dst.to_unsafe
+    a_ptr = a.to_unsafe
+
+    i = 0
+    while i + VECTOR_WIDTH <= n
+      asm(
+        "ld1 {v0.4s}, [$1]
+         fsqrt v0.4s, v0.4s
+         st1 {v0.4s}, [$0]"
+              :: "r"(dst_ptr + i), "r"(a_ptr + i)
+              : "v0", "memory"
+              : "volatile"
+      )
+      i += VECTOR_WIDTH
+    end
+
+    while i < n
+      dst[i] = Math.sqrt(a[i])
+      i += 1
+    end
+  end
+
+  def rsqrt(dst : Slice(Float32), a : Slice(Float32)) : Nil
+    n = check_len(dst, a)
+    dst_ptr = dst.to_unsafe
+    a_ptr = a.to_unsafe
+
+    i = 0
+    while i + VECTOR_WIDTH <= n
+      # One refinement iteration:
+      # y0 = frsqrte(x)
+      # y1 = y0 * frsqrts(x*y0, y0)
+      asm(
+        "ld1 {v0.4s}, [$1]
+         frsqrte v1.4s, v0.4s
+         fmul v2.4s, v0.4s, v1.4s
+         frsqrts v2.4s, v2.4s, v1.4s
+         fmul v1.4s, v1.4s, v2.4s
+         st1 {v1.4s}, [$0]"
+              :: "r"(dst_ptr + i), "r"(a_ptr + i)
+              : "v0", "v1", "v2", "memory"
+              : "volatile"
+      )
+      i += VECTOR_WIDTH
+    end
+
+    while i < n
+      dst[i] = 1.0_f32 / Math.sqrt(a[i])
+      i += 1
+    end
+  end
+
+  def abs(dst : Slice(Float32), a : Slice(Float32)) : Nil
+    n = check_len(dst, a)
+    dst_ptr = dst.to_unsafe
+    a_ptr = a.to_unsafe
+
+    i = 0
+    while i + VECTOR_WIDTH <= n
+      asm(
+        "ld1 {v0.4s}, [$1]
+         fabs v0.4s, v0.4s
+         st1 {v0.4s}, [$0]"
+              :: "r"(dst_ptr + i), "r"(a_ptr + i)
+              : "v0", "memory"
+              : "volatile"
+      )
+      i += VECTOR_WIDTH
+    end
+
+    while i < n
+      u = a[i].unsafe_as(UInt32)
+      dst[i] = (u & 0x7fff_ffff_u32).unsafe_as(Float32)
+      i += 1
+    end
+  end
+
+  def neg(dst : Slice(Float32), a : Slice(Float32)) : Nil
+    n = check_len(dst, a)
+    dst_ptr = dst.to_unsafe
+    a_ptr = a.to_unsafe
+
+    i = 0
+    while i + VECTOR_WIDTH <= n
+      asm(
+        "ld1 {v0.4s}, [$1]
+         fneg v0.4s, v0.4s
+         st1 {v0.4s}, [$0]"
+              :: "r"(dst_ptr + i), "r"(a_ptr + i)
+              : "v0", "memory"
+              : "volatile"
+      )
+      i += VECTOR_WIDTH
+    end
+
+    while i < n
+      dst[i] = -a[i]
+      i += 1
+    end
+  end
+
+  def floor(dst : Slice(Float32), a : Slice(Float32)) : Nil
+    n = check_len(dst, a)
+    dst_ptr = dst.to_unsafe
+    a_ptr = a.to_unsafe
+
+    i = 0
+    while i + VECTOR_WIDTH <= n
+      asm(
+        "ld1 {v0.4s}, [$1]
+         frintm v0.4s, v0.4s
+         st1 {v0.4s}, [$0]"
+              :: "r"(dst_ptr + i), "r"(a_ptr + i)
+              : "v0", "memory"
+              : "volatile"
+      )
+      i += VECTOR_WIDTH
+    end
+
+    while i < n
+      dst[i] = a[i].floor
+      i += 1
+    end
+  end
+
+  def ceil(dst : Slice(Float32), a : Slice(Float32)) : Nil
+    n = check_len(dst, a)
+    dst_ptr = dst.to_unsafe
+    a_ptr = a.to_unsafe
+
+    i = 0
+    while i + VECTOR_WIDTH <= n
+      asm(
+        "ld1 {v0.4s}, [$1]
+         frintp v0.4s, v0.4s
+         st1 {v0.4s}, [$0]"
+              :: "r"(dst_ptr + i), "r"(a_ptr + i)
+              : "v0", "memory"
+              : "volatile"
+      )
+      i += VECTOR_WIDTH
+    end
+
+    while i < n
+      dst[i] = a[i].ceil
+      i += 1
+    end
+  end
+
+  def round(dst : Slice(Float32), a : Slice(Float32)) : Nil
+    n = check_len(dst, a)
+    dst_ptr = dst.to_unsafe
+    a_ptr = a.to_unsafe
+
+    i = 0
+    while i + VECTOR_WIDTH <= n
+      asm(
+        "ld1 {v0.4s}, [$1]
+         frintn v0.4s, v0.4s
+         st1 {v0.4s}, [$0]"
+              :: "r"(dst_ptr + i), "r"(a_ptr + i)
+              : "v0", "memory"
+              : "volatile"
+      )
+      i += VECTOR_WIDTH
+    end
+
+    while i < n
+      dst[i] = a[i].round
+      i += 1
+    end
+  end
+
+  def min(dst : Slice(Float32), a : Slice(Float32), b : Slice(Float32)) : Nil
+    n = check_len(dst, a, b)
+    dst_ptr = dst.to_unsafe
+    a_ptr = a.to_unsafe
+    b_ptr = b.to_unsafe
+
+    i = 0
+    while i + VECTOR_WIDTH <= n
+      asm(
+        "ld1 {v0.4s}, [$1]
+         ld1 {v1.4s}, [$2]
+         fmin v0.4s, v0.4s, v1.4s
+         st1 {v0.4s}, [$0]"
+              :: "r"(dst_ptr + i), "r"(a_ptr + i), "r"(b_ptr + i)
+              : "v0", "v1", "memory"
+              : "volatile"
+      )
+      i += VECTOR_WIDTH
+    end
+
+    while i < n
+      av = a[i]
+      bv = b[i]
+      dst[i] = av < bv ? av : bv
+      i += 1
+    end
+  end
+
+  def max(dst : Slice(Float32), a : Slice(Float32), b : Slice(Float32)) : Nil
+    n = check_len(dst, a, b)
+    dst_ptr = dst.to_unsafe
+    a_ptr = a.to_unsafe
+    b_ptr = b.to_unsafe
+
+    i = 0
+    while i + VECTOR_WIDTH <= n
+      asm(
+        "ld1 {v0.4s}, [$1]
+         ld1 {v1.4s}, [$2]
+         fmax v0.4s, v0.4s, v1.4s
+         st1 {v0.4s}, [$0]"
+              :: "r"(dst_ptr + i), "r"(a_ptr + i), "r"(b_ptr + i)
+              : "v0", "v1", "memory"
+              : "volatile"
+      )
+      i += VECTOR_WIDTH
+    end
+
+    while i < n
+      av = a[i]
+      bv = b[i]
+      dst[i] = av > bv ? av : bv
+      i += 1
+    end
+  end
+
+  def cmp_eq(dst_mask : Slice(UInt8), a : Slice(Float32), b : Slice(Float32)) : Nil
+    n = check_len(dst_mask, a, b)
+    a_ptr = a.to_unsafe
+    b_ptr = b.to_unsafe
+
+    i = 0
+    while i + VECTOR_WIDTH <= n
+      mask_tmp = uninitialized StaticArray(UInt32, 4)
+      asm(
+        "ld1 {v0.4s}, [$1]
+         ld1 {v1.4s}, [$2]
+         fcmeq v0.4s, v0.4s, v1.4s
+         st1 {v0.4s}, [$0]"
+              :: "r"(mask_tmp.to_unsafe), "r"(a_ptr + i), "r"(b_ptr + i)
+              : "v0", "v1", "memory"
+              : "volatile"
+      )
+      dst_mask[i] = mask_tmp[0] != 0 ? 0xFF_u8 : 0x00_u8
+      dst_mask[i + 1] = mask_tmp[1] != 0 ? 0xFF_u8 : 0x00_u8
+      dst_mask[i + 2] = mask_tmp[2] != 0 ? 0xFF_u8 : 0x00_u8
+      dst_mask[i + 3] = mask_tmp[3] != 0 ? 0xFF_u8 : 0x00_u8
+      i += VECTOR_WIDTH
+    end
+
+    while i < n
+      dst_mask[i] = a[i] == b[i] ? 0xFF_u8 : 0x00_u8
+      i += 1
+    end
+  end
+
+  def cmp_ne(dst_mask : Slice(UInt8), a : Slice(Float32), b : Slice(Float32)) : Nil
+    n = check_len(dst_mask, a, b)
+    a_ptr = a.to_unsafe
+    b_ptr = b.to_unsafe
+
+    i = 0
+    while i + VECTOR_WIDTH <= n
+      mask_tmp = uninitialized StaticArray(UInt32, 4)
+      asm(
+        "ld1 {v0.4s}, [$1]
+         ld1 {v1.4s}, [$2]
+         fcmeq v0.4s, v0.4s, v1.4s
+         mvn v0.16b, v0.16b
+         st1 {v0.4s}, [$0]"
+              :: "r"(mask_tmp.to_unsafe), "r"(a_ptr + i), "r"(b_ptr + i)
+              : "v0", "v1", "memory"
+              : "volatile"
+      )
+      dst_mask[i] = mask_tmp[0] != 0 ? 0xFF_u8 : 0x00_u8
+      dst_mask[i + 1] = mask_tmp[1] != 0 ? 0xFF_u8 : 0x00_u8
+      dst_mask[i + 2] = mask_tmp[2] != 0 ? 0xFF_u8 : 0x00_u8
+      dst_mask[i + 3] = mask_tmp[3] != 0 ? 0xFF_u8 : 0x00_u8
+      i += VECTOR_WIDTH
+    end
+
+    while i < n
+      dst_mask[i] = a[i] != b[i] ? 0xFF_u8 : 0x00_u8
+      i += 1
+    end
+  end
+
+  def cmp_lt(dst_mask : Slice(UInt8), a : Slice(Float32), b : Slice(Float32)) : Nil
+    n = check_len(dst_mask, a, b)
+    a_ptr = a.to_unsafe
+    b_ptr = b.to_unsafe
+
+    i = 0
+    while i + VECTOR_WIDTH <= n
+      mask_tmp = uninitialized StaticArray(UInt32, 4)
+      asm(
+        "ld1 {v0.4s}, [$1]
+         ld1 {v1.4s}, [$2]
+         fcmgt v0.4s, v1.4s, v0.4s
+         st1 {v0.4s}, [$0]"
+              :: "r"(mask_tmp.to_unsafe), "r"(a_ptr + i), "r"(b_ptr + i)
+              : "v0", "v1", "memory"
+              : "volatile"
+      )
+      dst_mask[i] = mask_tmp[0] != 0 ? 0xFF_u8 : 0x00_u8
+      dst_mask[i + 1] = mask_tmp[1] != 0 ? 0xFF_u8 : 0x00_u8
+      dst_mask[i + 2] = mask_tmp[2] != 0 ? 0xFF_u8 : 0x00_u8
+      dst_mask[i + 3] = mask_tmp[3] != 0 ? 0xFF_u8 : 0x00_u8
+      i += VECTOR_WIDTH
+    end
+
+    while i < n
+      dst_mask[i] = a[i] < b[i] ? 0xFF_u8 : 0x00_u8
+      i += 1
+    end
+  end
+
+  def cmp_le(dst_mask : Slice(UInt8), a : Slice(Float32), b : Slice(Float32)) : Nil
+    n = check_len(dst_mask, a, b)
+    a_ptr = a.to_unsafe
+    b_ptr = b.to_unsafe
+
+    i = 0
+    while i + VECTOR_WIDTH <= n
+      mask_tmp = uninitialized StaticArray(UInt32, 4)
+      asm(
+        "ld1 {v0.4s}, [$1]
+         ld1 {v1.4s}, [$2]
+         fcmge v0.4s, v1.4s, v0.4s
+         st1 {v0.4s}, [$0]"
+              :: "r"(mask_tmp.to_unsafe), "r"(a_ptr + i), "r"(b_ptr + i)
+              : "v0", "v1", "memory"
+              : "volatile"
+      )
+      dst_mask[i] = mask_tmp[0] != 0 ? 0xFF_u8 : 0x00_u8
+      dst_mask[i + 1] = mask_tmp[1] != 0 ? 0xFF_u8 : 0x00_u8
+      dst_mask[i + 2] = mask_tmp[2] != 0 ? 0xFF_u8 : 0x00_u8
+      dst_mask[i + 3] = mask_tmp[3] != 0 ? 0xFF_u8 : 0x00_u8
+      i += VECTOR_WIDTH
+    end
+
+    while i < n
+      dst_mask[i] = a[i] <= b[i] ? 0xFF_u8 : 0x00_u8
+      i += 1
+    end
+  end
+
+  def cmp_ge(dst_mask : Slice(UInt8), a : Slice(Float32), b : Slice(Float32)) : Nil
+    n = check_len(dst_mask, a, b)
+    a_ptr = a.to_unsafe
+    b_ptr = b.to_unsafe
+
+    i = 0
+    while i + VECTOR_WIDTH <= n
+      mask_tmp = uninitialized StaticArray(UInt32, 4)
+      asm(
+        "ld1 {v0.4s}, [$1]
+         ld1 {v1.4s}, [$2]
+         fcmge v0.4s, v0.4s, v1.4s
+         st1 {v0.4s}, [$0]"
+              :: "r"(mask_tmp.to_unsafe), "r"(a_ptr + i), "r"(b_ptr + i)
+              : "v0", "v1", "memory"
+              : "volatile"
+      )
+      dst_mask[i] = mask_tmp[0] != 0 ? 0xFF_u8 : 0x00_u8
+      dst_mask[i + 1] = mask_tmp[1] != 0 ? 0xFF_u8 : 0x00_u8
+      dst_mask[i + 2] = mask_tmp[2] != 0 ? 0xFF_u8 : 0x00_u8
+      dst_mask[i + 3] = mask_tmp[3] != 0 ? 0xFF_u8 : 0x00_u8
+      i += VECTOR_WIDTH
+    end
+
+    while i < n
+      dst_mask[i] = a[i] >= b[i] ? 0xFF_u8 : 0x00_u8
       i += 1
     end
   end
@@ -557,6 +1064,402 @@ class SIMD::NEON < SIMD::Base
     end
   end
 
+  def div(dst : Slice(Float64), a : Slice(Float64), b : Slice(Float64)) : Nil
+    n = check_len(dst, a, b)
+    dst_ptr = dst.to_unsafe
+    a_ptr = a.to_unsafe
+    b_ptr = b.to_unsafe
+
+    i = 0
+    while i + VECTOR_WIDTH_F64 <= n
+      asm(
+        "ld1 {v0.2d}, [$1]
+         ld1 {v1.2d}, [$2]
+         fdiv v0.2d, v0.2d, v1.2d
+         st1 {v0.2d}, [$0]"
+              :: "r"(dst_ptr + i), "r"(a_ptr + i), "r"(b_ptr + i)
+              : "v0", "v1", "memory"
+              : "volatile"
+      )
+      i += VECTOR_WIDTH_F64
+    end
+
+    while i < n
+      dst[i] = a[i] / b[i]
+      i += 1
+    end
+  end
+
+  def sqrt(dst : Slice(Float64), a : Slice(Float64)) : Nil
+    n = check_len(dst, a)
+    dst_ptr = dst.to_unsafe
+    a_ptr = a.to_unsafe
+
+    i = 0
+    while i + VECTOR_WIDTH_F64 <= n
+      asm(
+        "ld1 {v0.2d}, [$1]
+         fsqrt v0.2d, v0.2d
+         st1 {v0.2d}, [$0]"
+              :: "r"(dst_ptr + i), "r"(a_ptr + i)
+              : "v0", "memory"
+              : "volatile"
+      )
+      i += VECTOR_WIDTH_F64
+    end
+
+    while i < n
+      dst[i] = Math.sqrt(a[i])
+      i += 1
+    end
+  end
+
+  def rsqrt(dst : Slice(Float64), a : Slice(Float64)) : Nil
+    n = check_len(dst, a)
+    dst_ptr = dst.to_unsafe
+    a_ptr = a.to_unsafe
+
+    ones = StaticArray[1.0_f64, 1.0_f64]
+    ones_ptr = ones.to_unsafe
+
+    i = 0
+    while i + VECTOR_WIDTH_F64 <= n
+      asm(
+        "ld1 {v0.2d}, [$1]
+         fsqrt v0.2d, v0.2d
+         ld1 {v1.2d}, [$2]
+         fdiv v0.2d, v1.2d, v0.2d
+         st1 {v0.2d}, [$0]"
+              :: "r"(dst_ptr + i), "r"(a_ptr + i), "r"(ones_ptr)
+              : "v0", "v1", "memory"
+              : "volatile"
+      )
+      i += VECTOR_WIDTH_F64
+    end
+
+    while i < n
+      dst[i] = 1.0_f64 / Math.sqrt(a[i])
+      i += 1
+    end
+  end
+
+  def abs(dst : Slice(Float64), a : Slice(Float64)) : Nil
+    n = check_len(dst, a)
+    dst_ptr = dst.to_unsafe
+    a_ptr = a.to_unsafe
+
+    i = 0
+    while i + VECTOR_WIDTH_F64 <= n
+      asm(
+        "ld1 {v0.2d}, [$1]
+         fabs v0.2d, v0.2d
+         st1 {v0.2d}, [$0]"
+              :: "r"(dst_ptr + i), "r"(a_ptr + i)
+              : "v0", "memory"
+              : "volatile"
+      )
+      i += VECTOR_WIDTH_F64
+    end
+
+    while i < n
+      dst[i] = a[i].abs
+      i += 1
+    end
+  end
+
+  def neg(dst : Slice(Float64), a : Slice(Float64)) : Nil
+    n = check_len(dst, a)
+    dst_ptr = dst.to_unsafe
+    a_ptr = a.to_unsafe
+
+    i = 0
+    while i + VECTOR_WIDTH_F64 <= n
+      asm(
+        "ld1 {v0.2d}, [$1]
+         fneg v0.2d, v0.2d
+         st1 {v0.2d}, [$0]"
+              :: "r"(dst_ptr + i), "r"(a_ptr + i)
+              : "v0", "memory"
+              : "volatile"
+      )
+      i += VECTOR_WIDTH_F64
+    end
+
+    while i < n
+      dst[i] = -a[i]
+      i += 1
+    end
+  end
+
+  def floor(dst : Slice(Float64), a : Slice(Float64)) : Nil
+    n = check_len(dst, a)
+    dst_ptr = dst.to_unsafe
+    a_ptr = a.to_unsafe
+
+    i = 0
+    while i + VECTOR_WIDTH_F64 <= n
+      asm(
+        "ld1 {v0.2d}, [$1]
+         frintm v0.2d, v0.2d
+         st1 {v0.2d}, [$0]"
+              :: "r"(dst_ptr + i), "r"(a_ptr + i)
+              : "v0", "memory"
+              : "volatile"
+      )
+      i += VECTOR_WIDTH_F64
+    end
+
+    while i < n
+      dst[i] = a[i].floor
+      i += 1
+    end
+  end
+
+  def ceil(dst : Slice(Float64), a : Slice(Float64)) : Nil
+    n = check_len(dst, a)
+    dst_ptr = dst.to_unsafe
+    a_ptr = a.to_unsafe
+
+    i = 0
+    while i + VECTOR_WIDTH_F64 <= n
+      asm(
+        "ld1 {v0.2d}, [$1]
+         frintp v0.2d, v0.2d
+         st1 {v0.2d}, [$0]"
+              :: "r"(dst_ptr + i), "r"(a_ptr + i)
+              : "v0", "memory"
+              : "volatile"
+      )
+      i += VECTOR_WIDTH_F64
+    end
+
+    while i < n
+      dst[i] = a[i].ceil
+      i += 1
+    end
+  end
+
+  def round(dst : Slice(Float64), a : Slice(Float64)) : Nil
+    n = check_len(dst, a)
+    dst_ptr = dst.to_unsafe
+    a_ptr = a.to_unsafe
+
+    i = 0
+    while i + VECTOR_WIDTH_F64 <= n
+      asm(
+        "ld1 {v0.2d}, [$1]
+         frintn v0.2d, v0.2d
+         st1 {v0.2d}, [$0]"
+              :: "r"(dst_ptr + i), "r"(a_ptr + i)
+              : "v0", "memory"
+              : "volatile"
+      )
+      i += VECTOR_WIDTH_F64
+    end
+
+    while i < n
+      dst[i] = a[i].round
+      i += 1
+    end
+  end
+
+  def min(dst : Slice(Float64), a : Slice(Float64), b : Slice(Float64)) : Nil
+    n = check_len(dst, a, b)
+    dst_ptr = dst.to_unsafe
+    a_ptr = a.to_unsafe
+    b_ptr = b.to_unsafe
+
+    i = 0
+    while i + VECTOR_WIDTH_F64 <= n
+      asm(
+        "ld1 {v0.2d}, [$1]
+         ld1 {v1.2d}, [$2]
+         fmin v0.2d, v0.2d, v1.2d
+         st1 {v0.2d}, [$0]"
+              :: "r"(dst_ptr + i), "r"(a_ptr + i), "r"(b_ptr + i)
+              : "v0", "v1", "memory"
+              : "volatile"
+      )
+      i += VECTOR_WIDTH_F64
+    end
+
+    while i < n
+      av = a[i]
+      bv = b[i]
+      dst[i] = av < bv ? av : bv
+      i += 1
+    end
+  end
+
+  def max(dst : Slice(Float64), a : Slice(Float64), b : Slice(Float64)) : Nil
+    n = check_len(dst, a, b)
+    dst_ptr = dst.to_unsafe
+    a_ptr = a.to_unsafe
+    b_ptr = b.to_unsafe
+
+    i = 0
+    while i + VECTOR_WIDTH_F64 <= n
+      asm(
+        "ld1 {v0.2d}, [$1]
+         ld1 {v1.2d}, [$2]
+         fmax v0.2d, v0.2d, v1.2d
+         st1 {v0.2d}, [$0]"
+              :: "r"(dst_ptr + i), "r"(a_ptr + i), "r"(b_ptr + i)
+              : "v0", "v1", "memory"
+              : "volatile"
+      )
+      i += VECTOR_WIDTH_F64
+    end
+
+    while i < n
+      av = a[i]
+      bv = b[i]
+      dst[i] = av > bv ? av : bv
+      i += 1
+    end
+  end
+
+  def cmp_eq(dst_mask : Slice(UInt8), a : Slice(Float64), b : Slice(Float64)) : Nil
+    n = check_len(dst_mask, a, b)
+    a_ptr = a.to_unsafe
+    b_ptr = b.to_unsafe
+
+    i = 0
+    while i + VECTOR_WIDTH_F64 <= n
+      mask_tmp = uninitialized StaticArray(UInt64, 2)
+      asm(
+        "ld1 {v0.2d}, [$1]
+         ld1 {v1.2d}, [$2]
+         fcmeq v0.2d, v0.2d, v1.2d
+         st1 {v0.2d}, [$0]"
+              :: "r"(mask_tmp.to_unsafe), "r"(a_ptr + i), "r"(b_ptr + i)
+              : "v0", "v1", "memory"
+              : "volatile"
+      )
+      dst_mask[i] = mask_tmp[0] != 0 ? 0xFF_u8 : 0x00_u8
+      dst_mask[i + 1] = mask_tmp[1] != 0 ? 0xFF_u8 : 0x00_u8
+      i += VECTOR_WIDTH_F64
+    end
+
+    while i < n
+      dst_mask[i] = a[i] == b[i] ? 0xFF_u8 : 0x00_u8
+      i += 1
+    end
+  end
+
+  def cmp_ne(dst_mask : Slice(UInt8), a : Slice(Float64), b : Slice(Float64)) : Nil
+    n = check_len(dst_mask, a, b)
+    a_ptr = a.to_unsafe
+    b_ptr = b.to_unsafe
+
+    i = 0
+    while i + VECTOR_WIDTH_F64 <= n
+      mask_tmp = uninitialized StaticArray(UInt64, 2)
+      asm(
+        "ld1 {v0.2d}, [$1]
+         ld1 {v1.2d}, [$2]
+         fcmeq v0.2d, v0.2d, v1.2d
+         mvn v0.16b, v0.16b
+         st1 {v0.2d}, [$0]"
+              :: "r"(mask_tmp.to_unsafe), "r"(a_ptr + i), "r"(b_ptr + i)
+              : "v0", "v1", "memory"
+              : "volatile"
+      )
+      dst_mask[i] = mask_tmp[0] != 0 ? 0xFF_u8 : 0x00_u8
+      dst_mask[i + 1] = mask_tmp[1] != 0 ? 0xFF_u8 : 0x00_u8
+      i += VECTOR_WIDTH_F64
+    end
+
+    while i < n
+      dst_mask[i] = a[i] != b[i] ? 0xFF_u8 : 0x00_u8
+      i += 1
+    end
+  end
+
+  def cmp_lt(dst_mask : Slice(UInt8), a : Slice(Float64), b : Slice(Float64)) : Nil
+    n = check_len(dst_mask, a, b)
+    a_ptr = a.to_unsafe
+    b_ptr = b.to_unsafe
+
+    i = 0
+    while i + VECTOR_WIDTH_F64 <= n
+      mask_tmp = uninitialized StaticArray(UInt64, 2)
+      asm(
+        "ld1 {v0.2d}, [$1]
+         ld1 {v1.2d}, [$2]
+         fcmgt v0.2d, v1.2d, v0.2d
+         st1 {v0.2d}, [$0]"
+              :: "r"(mask_tmp.to_unsafe), "r"(a_ptr + i), "r"(b_ptr + i)
+              : "v0", "v1", "memory"
+              : "volatile"
+      )
+      dst_mask[i] = mask_tmp[0] != 0 ? 0xFF_u8 : 0x00_u8
+      dst_mask[i + 1] = mask_tmp[1] != 0 ? 0xFF_u8 : 0x00_u8
+      i += VECTOR_WIDTH_F64
+    end
+
+    while i < n
+      dst_mask[i] = a[i] < b[i] ? 0xFF_u8 : 0x00_u8
+      i += 1
+    end
+  end
+
+  def cmp_le(dst_mask : Slice(UInt8), a : Slice(Float64), b : Slice(Float64)) : Nil
+    n = check_len(dst_mask, a, b)
+    a_ptr = a.to_unsafe
+    b_ptr = b.to_unsafe
+
+    i = 0
+    while i + VECTOR_WIDTH_F64 <= n
+      mask_tmp = uninitialized StaticArray(UInt64, 2)
+      asm(
+        "ld1 {v0.2d}, [$1]
+         ld1 {v1.2d}, [$2]
+         fcmge v0.2d, v1.2d, v0.2d
+         st1 {v0.2d}, [$0]"
+              :: "r"(mask_tmp.to_unsafe), "r"(a_ptr + i), "r"(b_ptr + i)
+              : "v0", "v1", "memory"
+              : "volatile"
+      )
+      dst_mask[i] = mask_tmp[0] != 0 ? 0xFF_u8 : 0x00_u8
+      dst_mask[i + 1] = mask_tmp[1] != 0 ? 0xFF_u8 : 0x00_u8
+      i += VECTOR_WIDTH_F64
+    end
+
+    while i < n
+      dst_mask[i] = a[i] <= b[i] ? 0xFF_u8 : 0x00_u8
+      i += 1
+    end
+  end
+
+  def cmp_ge(dst_mask : Slice(UInt8), a : Slice(Float64), b : Slice(Float64)) : Nil
+    n = check_len(dst_mask, a, b)
+    a_ptr = a.to_unsafe
+    b_ptr = b.to_unsafe
+
+    i = 0
+    while i + VECTOR_WIDTH_F64 <= n
+      mask_tmp = uninitialized StaticArray(UInt64, 2)
+      asm(
+        "ld1 {v0.2d}, [$1]
+         ld1 {v1.2d}, [$2]
+         fcmge v0.2d, v0.2d, v1.2d
+         st1 {v0.2d}, [$0]"
+              :: "r"(mask_tmp.to_unsafe), "r"(a_ptr + i), "r"(b_ptr + i)
+              : "v0", "v1", "memory"
+              : "volatile"
+      )
+      dst_mask[i] = mask_tmp[0] != 0 ? 0xFF_u8 : 0x00_u8
+      dst_mask[i + 1] = mask_tmp[1] != 0 ? 0xFF_u8 : 0x00_u8
+      i += VECTOR_WIDTH_F64
+    end
+
+    while i < n
+      dst_mask[i] = a[i] >= b[i] ? 0xFF_u8 : 0x00_u8
+      i += 1
+    end
+  end
+
   def sum(a : Slice(Float64)) : Float64
     n = a.size
     a_ptr = a.to_unsafe
@@ -764,54 +1667,6 @@ class SIMD::NEON < SIMD::Base
     end
   end
 
-  def blend(dst : Slice(Float64), t : Slice(Float64), f : Slice(Float64), mask : Slice(UInt8)) : Nil
-    n = check_len(dst, t, f, mask)
-    dst_ptr = dst.to_unsafe
-    t_ptr = t.to_unsafe
-    f_ptr = f.to_unsafe
-
-    i = 0
-    while i + VECTOR_WIDTH_F64 <= n
-      mask_expanded = uninitialized StaticArray(UInt64, 2)
-      mask_expanded[0] = mask[i] != 0 ? 0xFFFFFFFFFFFFFFFF_u64 : 0_u64
-      mask_expanded[1] = mask[i + 1] != 0 ? 0xFFFFFFFFFFFFFFFF_u64 : 0_u64
-
-      asm(
-        "ld1 {v0.2d}, [$3]
-         ld1 {v1.2d}, [$1]
-         ld1 {v2.2d}, [$2]
-         bsl v0.16b, v1.16b, v2.16b
-         st1 {v0.2d}, [$0]"
-              :: "r"(dst_ptr + i), "r"(t_ptr + i), "r"(f_ptr + i), "r"(mask_expanded.to_unsafe)
-              : "v0", "v1", "v2", "memory"
-              : "volatile"
-      )
-      i += VECTOR_WIDTH_F64
-    end
-
-    while i < n
-      dst[i] = mask[i] == 0 ? f[i] : t[i]
-      i += 1
-    end
-  end
-
-  def compress(dst : Slice(Float64), src : Slice(Float64), mask : Slice(UInt8)) : Int32
-    # NEON lacks compress instruction; use scalar
-    raise ArgumentError.new("length mismatch") unless src.size == mask.size
-    outp = 0
-    i = 0
-    n = src.size
-    while i < n
-      if mask[i] != 0
-        raise ArgumentError.new("dst too small") if outp >= dst.size
-        dst[outp] = src[i]
-        outp += 1
-      end
-      i += 1
-    end
-    outp
-  end
-
   def fir(dst : Slice(Float64), src : Slice(Float64), coeff : Slice(Float64)) : Nil
     taps = coeff.size
     raise ArgumentError.new("coeff empty") if taps == 0
@@ -919,6 +1774,178 @@ class SIMD::NEON < SIMD::Base
   def mul(dst : Slice(UInt64), a : Slice(UInt64), b : Slice(UInt64)) : Nil
     # NEON doesn't have native 64-bit multiply
     SIMD::SCALAR_FALLBACK.mul(dst, a, b)
+  end
+
+  def clamp(dst : Slice(UInt64), a : Slice(UInt64), lo : UInt64, hi : UInt64) : Nil
+    n = check_len(dst, a)
+    dst_ptr = dst.to_unsafe
+    a_ptr = a.to_unsafe
+
+    lo_arr = StaticArray[lo, lo]
+    hi_arr = StaticArray[hi, hi]
+    lo_ptr = lo_arr.to_unsafe
+    hi_ptr = hi_arr.to_unsafe
+
+    i = 0
+    while i + VECTOR_WIDTH_64 <= n
+      asm(
+        "ld1 {v0.2d}, [$1]
+         ld1 {v1.2d}, [$2]
+         ld1 {v2.2d}, [$3]
+         umax v0.2d, v0.2d, v1.2d
+         umin v0.2d, v0.2d, v2.2d
+         st1 {v0.2d}, [$0]"
+              :: "r"(dst_ptr + i), "r"(a_ptr + i), "r"(lo_ptr), "r"(hi_ptr)
+              : "v0", "v1", "v2", "memory"
+              : "volatile"
+      )
+      i += VECTOR_WIDTH_64
+    end
+
+    while i < n
+      v = a[i]
+      v = lo if v < lo
+      v = hi if v > hi
+      dst[i] = v
+      i += 1
+    end
+  end
+
+  def sum(a : Slice(UInt64)) : UInt64
+    raise ArgumentError.new("empty") if a.empty?
+    n = a.size
+    a_ptr = a.to_unsafe
+
+    acc_vec = StaticArray(UInt64, 2).new(0_u64)
+    acc_ptr = acc_vec.to_unsafe
+
+    i = 0
+    while i + VECTOR_WIDTH_64 <= n
+      asm(
+        "ld1 {v0.2d}, [$0]
+         ld1 {v1.2d}, [$1]
+         add v0.2d, v0.2d, v1.2d
+         st1 {v0.2d}, [$0]"
+              :: "r"(acc_ptr), "r"(a_ptr + i)
+              : "v0", "v1", "memory"
+              : "volatile"
+      )
+      i += VECTOR_WIDTH_64
+    end
+
+    result = acc_vec[0] &+ acc_vec[1]
+    while i < n
+      result &+= a[i]
+      i += 1
+    end
+    result
+  end
+
+  def max(a : Slice(UInt64)) : UInt64
+    raise ArgumentError.new("empty") if a.empty?
+    n = a.size
+    a_ptr = a.to_unsafe
+
+    if n < VECTOR_WIDTH_64
+      m = a[0]
+      (1...n).each { |j| m = a[j] if a[j] > m }
+      return m
+    end
+
+    max_vec = StaticArray(UInt64, 2).new { |j| a[j] }
+    max_ptr = max_vec.to_unsafe
+
+    i = VECTOR_WIDTH_64
+    while i + VECTOR_WIDTH_64 <= n
+      asm(
+        "ld1 {v0.2d}, [$0]
+         ld1 {v1.2d}, [$1]
+         umax v0.2d, v0.2d, v1.2d
+         st1 {v0.2d}, [$0]"
+              :: "r"(max_ptr), "r"(a_ptr + i)
+              : "v0", "v1", "memory"
+              : "volatile"
+      )
+      i += VECTOR_WIDTH_64
+    end
+
+    result = max_vec[0]
+    result = max_vec[1] if max_vec[1] > result
+
+    while i < n
+      result = a[i] if a[i] > result
+      i += 1
+    end
+
+    result
+  end
+
+  def min(a : Slice(UInt64)) : UInt64
+    raise ArgumentError.new("empty") if a.empty?
+    n = a.size
+    a_ptr = a.to_unsafe
+
+    if n < VECTOR_WIDTH_64
+      m = a[0]
+      (1...n).each { |j| m = a[j] if a[j] < m }
+      return m
+    end
+
+    min_vec = StaticArray(UInt64, 2).new { |j| a[j] }
+    min_ptr = min_vec.to_unsafe
+
+    i = VECTOR_WIDTH_64
+    while i + VECTOR_WIDTH_64 <= n
+      asm(
+        "ld1 {v0.2d}, [$0]
+         ld1 {v1.2d}, [$1]
+         umin v0.2d, v0.2d, v1.2d
+         st1 {v0.2d}, [$0]"
+              :: "r"(min_ptr), "r"(a_ptr + i)
+              : "v0", "v1", "memory"
+              : "volatile"
+      )
+      i += VECTOR_WIDTH_64
+    end
+
+    result = min_vec[0]
+    result = min_vec[1] if min_vec[1] < result
+
+    while i < n
+      result = a[i] if a[i] < result
+      i += 1
+    end
+
+    result
+  end
+
+  def cmp_gt_mask(dst_mask : Slice(UInt8), a : Slice(UInt64), b : Slice(UInt64)) : Nil
+    n = check_len(dst_mask, a, b)
+    a_ptr = a.to_unsafe
+    b_ptr = b.to_unsafe
+
+    i = 0
+    while i + VECTOR_WIDTH_64 <= n
+      mask_tmp = uninitialized StaticArray(UInt64, 2)
+      asm(
+        "ld1 {v0.2d}, [$1]
+         ld1 {v1.2d}, [$2]
+         cmhi v0.2d, v0.2d, v1.2d
+         st1 {v0.2d}, [$0]"
+              :: "r"(mask_tmp.to_unsafe), "r"(a_ptr + i), "r"(b_ptr + i)
+              : "v0", "v1", "memory"
+              : "volatile"
+      )
+
+      dst_mask[i] = mask_tmp[0] != 0 ? 0xFF_u8 : 0x00_u8
+      dst_mask[i + 1] = mask_tmp[1] != 0 ? 0xFF_u8 : 0x00_u8
+      i += VECTOR_WIDTH_64
+    end
+
+    while i < n
+      dst_mask[i] = a[i] > b[i] ? 0xFF_u8 : 0x00_u8
+      i += 1
+    end
   end
 
   def bitwise_and(dst : Slice(UInt64), a : Slice(UInt64), b : Slice(UInt64)) : Nil
@@ -1035,6 +2062,119 @@ class SIMD::NEON < SIMD::Base
   # ============================================================
   # Int64 operations (signed-specific)
   # ============================================================
+
+  def clamp(dst : Slice(Int64), a : Slice(Int64), lo : Int64, hi : Int64) : Nil
+    n = check_len(dst, a)
+    dst_ptr = dst.to_unsafe
+    a_ptr = a.to_unsafe
+
+    lo_arr = StaticArray[lo, lo]
+    hi_arr = StaticArray[hi, hi]
+    lo_ptr = lo_arr.to_unsafe
+    hi_ptr = hi_arr.to_unsafe
+
+    i = 0
+    while i + VECTOR_WIDTH_64 <= n
+      asm(
+        "ld1 {v0.2d}, [$1]
+         ld1 {v1.2d}, [$2]
+         ld1 {v2.2d}, [$3]
+         smax v0.2d, v0.2d, v1.2d
+         smin v0.2d, v0.2d, v2.2d
+         st1 {v0.2d}, [$0]"
+              :: "r"(dst_ptr + i), "r"(a_ptr + i), "r"(lo_ptr), "r"(hi_ptr)
+              : "v0", "v1", "v2", "memory"
+              : "volatile"
+      )
+      i += VECTOR_WIDTH_64
+    end
+
+    while i < n
+      v = a[i]
+      v = lo if v < lo
+      v = hi if v > hi
+      dst[i] = v
+      i += 1
+    end
+  end
+
+  def max(a : Slice(Int64)) : Int64
+    raise ArgumentError.new("empty") if a.empty?
+    n = a.size
+    a_ptr = a.to_unsafe
+
+    if n < VECTOR_WIDTH_64
+      m = a[0]
+      (1...n).each { |j| m = a[j] if a[j] > m }
+      return m
+    end
+
+    max_vec = StaticArray(Int64, 2).new { |j| a[j] }
+    max_ptr = max_vec.to_unsafe
+
+    i = VECTOR_WIDTH_64
+    while i + VECTOR_WIDTH_64 <= n
+      asm(
+        "ld1 {v0.2d}, [$0]
+         ld1 {v1.2d}, [$1]
+         smax v0.2d, v0.2d, v1.2d
+         st1 {v0.2d}, [$0]"
+              :: "r"(max_ptr), "r"(a_ptr + i)
+              : "v0", "v1", "memory"
+              : "volatile"
+      )
+      i += VECTOR_WIDTH_64
+    end
+
+    result = max_vec[0]
+    result = max_vec[1] if max_vec[1] > result
+
+    while i < n
+      result = a[i] if a[i] > result
+      i += 1
+    end
+
+    result
+  end
+
+  def min(a : Slice(Int64)) : Int64
+    raise ArgumentError.new("empty") if a.empty?
+    n = a.size
+    a_ptr = a.to_unsafe
+
+    if n < VECTOR_WIDTH_64
+      m = a[0]
+      (1...n).each { |j| m = a[j] if a[j] < m }
+      return m
+    end
+
+    min_vec = StaticArray(Int64, 2).new { |j| a[j] }
+    min_ptr = min_vec.to_unsafe
+
+    i = VECTOR_WIDTH_64
+    while i + VECTOR_WIDTH_64 <= n
+      asm(
+        "ld1 {v0.2d}, [$0]
+         ld1 {v1.2d}, [$1]
+         smin v0.2d, v0.2d, v1.2d
+         st1 {v0.2d}, [$0]"
+              :: "r"(min_ptr), "r"(a_ptr + i)
+              : "v0", "v1", "memory"
+              : "volatile"
+      )
+      i += VECTOR_WIDTH_64
+    end
+
+    result = min_vec[0]
+    result = min_vec[1] if min_vec[1] < result
+
+    while i < n
+      result = a[i] if a[i] < result
+      i += 1
+    end
+
+    result
+  end
 
   def cmp_gt_mask(dst_mask : Slice(UInt8), a : Slice(Int64), b : Slice(Int64)) : Nil
     n = check_len(dst_mask, a, b)
@@ -1182,6 +2322,18 @@ class SIMD::NEON < SIMD::Base
     end
   end
 
+  def sum(a : Slice(UInt32)) : UInt32
+    raise ArgumentError.new("empty") if a.empty?
+    n = a.size
+    result = 0_u32
+    i = 0
+    while i < n
+      result &+= a[i]
+      i += 1
+    end
+    result
+  end
+
   def max(a : Slice(UInt32)) : UInt32
     raise ArgumentError.new("empty") if a.empty?
     n = a.size
@@ -1288,39 +2440,6 @@ class SIMD::NEON < SIMD::Base
 
     while i < n
       dst_mask[i] = a[i] > b[i] ? 0xFF_u8 : 0x00_u8
-      i += 1
-    end
-  end
-
-  def blend(dst : Slice(UInt32), t : Slice(UInt32), f : Slice(UInt32), mask : Slice(UInt8)) : Nil
-    n = check_len(dst, t, f, mask)
-    dst_ptr = dst.to_unsafe
-    t_ptr = t.to_unsafe
-    f_ptr = f.to_unsafe
-
-    i = 0
-    while i + VECTOR_WIDTH <= n
-      mask_expanded = uninitialized StaticArray(UInt32, 4)
-      mask_expanded[0] = mask[i] != 0 ? 0xFFFFFFFF_u32 : 0_u32
-      mask_expanded[1] = mask[i + 1] != 0 ? 0xFFFFFFFF_u32 : 0_u32
-      mask_expanded[2] = mask[i + 2] != 0 ? 0xFFFFFFFF_u32 : 0_u32
-      mask_expanded[3] = mask[i + 3] != 0 ? 0xFFFFFFFF_u32 : 0_u32
-
-      asm(
-        "ld1 {v0.4s}, [$3]
-         ld1 {v1.4s}, [$1]
-         ld1 {v2.4s}, [$2]
-         bsl v0.16b, v1.16b, v2.16b
-         st1 {v0.4s}, [$0]"
-              :: "r"(dst_ptr + i), "r"(t_ptr + i), "r"(f_ptr + i), "r"(mask_expanded.to_unsafe)
-              : "v0", "v1", "v2", "memory"
-              : "volatile"
-      )
-      i += VECTOR_WIDTH
-    end
-
-    while i < n
-      dst[i] = mask[i] == 0 ? f[i] : t[i]
       i += 1
     end
   end
@@ -1695,6 +2814,18 @@ class SIMD::NEON < SIMD::Base
       dst[i] = v
       i += 1
     end
+  end
+
+  def sum(a : Slice(UInt16)) : UInt16
+    raise ArgumentError.new("empty") if a.empty?
+    n = a.size
+    result = 0_u16
+    i = 0
+    while i < n
+      result &+= a[i]
+      i += 1
+    end
+    result
   end
 
   def max(a : Slice(UInt16)) : UInt16
@@ -2202,6 +3333,18 @@ class SIMD::NEON < SIMD::Base
     end
   end
 
+  def sum(a : Slice(UInt8)) : UInt8
+    raise ArgumentError.new("empty") if a.empty?
+    n = a.size
+    result = 0_u8
+    i = 0
+    while i < n
+      result &+= a[i]
+      i += 1
+    end
+    result
+  end
+
   def max(a : Slice(UInt8)) : UInt8
     raise ArgumentError.new("empty") if a.empty?
     n = a.size
@@ -2658,58 +3801,6 @@ class SIMD::NEON < SIMD::Base
       dst_mask[i] = a[i] > b[i] ? 0xFF_u8 : 0x00_u8
       i += 1
     end
-  end
-
-  def blend(dst : Slice(Float32), t : Slice(Float32), f : Slice(Float32), mask : Slice(UInt8)) : Nil
-    n = check_len(dst, t, f, mask)
-    dst_ptr = dst.to_unsafe
-    t_ptr = t.to_unsafe
-    f_ptr = f.to_unsafe
-
-    i = 0
-    while i + VECTOR_WIDTH <= n
-      # Expand byte mask to 32-bit for bsl
-      mask_expanded = uninitialized StaticArray(UInt32, 4)
-      mask_expanded[0] = mask[i] != 0 ? 0xFFFFFFFF_u32 : 0_u32
-      mask_expanded[1] = mask[i + 1] != 0 ? 0xFFFFFFFF_u32 : 0_u32
-      mask_expanded[2] = mask[i + 2] != 0 ? 0xFFFFFFFF_u32 : 0_u32
-      mask_expanded[3] = mask[i + 3] != 0 ? 0xFFFFFFFF_u32 : 0_u32
-
-      # bsl: bitwise select (mask ? t : f)
-      asm(
-        "ld1 {v0.4s}, [$3]
-         ld1 {v1.4s}, [$1]
-         ld1 {v2.4s}, [$2]
-         bsl v0.16b, v1.16b, v2.16b
-         st1 {v0.4s}, [$0]"
-              :: "r"(dst_ptr + i), "r"(t_ptr + i), "r"(f_ptr + i), "r"(mask_expanded.to_unsafe)
-              : "v0", "v1", "v2", "memory"
-              : "volatile"
-      )
-      i += VECTOR_WIDTH
-    end
-
-    while i < n
-      dst[i] = mask[i] == 0 ? f[i] : t[i]
-      i += 1
-    end
-  end
-
-  def compress(dst : Slice(Float32), src : Slice(Float32), mask : Slice(UInt8)) : Int32
-    # NEON lacks compress instruction; use scalar
-    raise ArgumentError.new("length mismatch") unless src.size == mask.size
-    outp = 0
-    i = 0
-    n = src.size
-    while i < n
-      if mask[i] != 0
-        raise ArgumentError.new("dst too small") if outp >= dst.size
-        dst[outp] = src[i]
-        outp += 1
-      end
-      i += 1
-    end
-    outp
   end
 
   def copy(dst : Slice(UInt8), src : Slice(UInt8)) : Nil

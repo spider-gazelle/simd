@@ -13,6 +13,16 @@
 # For signed integers, most operations forward to unsigned versions since
 # SIMD instructions operate on the same bit patterns.
 abstract class SIMD::Base
+  # Shared length check helper.
+  # Backends often override this locally for their own methods.
+  private def check_len(*slices)
+    size = slices[0].as(Slice).size
+    slices.each do |slice|
+      raise ArgumentError.new("length mismatch") unless slice.as(Slice).size == size
+    end
+    size
+  end
+
   # ============================================================
   # FLOAT32 OPERATIONS (existing)
   # ============================================================
@@ -40,6 +50,34 @@ abstract class SIMD::Base
   abstract def axpby(dst : Slice(Float32), a : Slice(Float32), b : Slice(Float32), alpha : Float32, beta : Float32) : Nil
 
   # ---------------------------
+  # Additional math (Float32)
+  # ---------------------------
+
+  # dst[i] = a[i] / b[i]
+  abstract def div(dst : Slice(Float32), a : Slice(Float32), b : Slice(Float32)) : Nil
+
+  # dst[i] = sqrt(a[i])
+  abstract def sqrt(dst : Slice(Float32), a : Slice(Float32)) : Nil
+
+  # dst[i] = 1 / sqrt(a[i])  (fast approx on capable backends)
+  abstract def rsqrt(dst : Slice(Float32), a : Slice(Float32)) : Nil
+
+  # dst[i] = abs(a[i])
+  abstract def abs(dst : Slice(Float32), a : Slice(Float32)) : Nil
+
+  # dst[i] = -a[i]
+  abstract def neg(dst : Slice(Float32), a : Slice(Float32)) : Nil
+
+  # dst[i] = floor(a[i])
+  abstract def floor(dst : Slice(Float32), a : Slice(Float32)) : Nil
+
+  # dst[i] = ceil(a[i])
+  abstract def ceil(dst : Slice(Float32), a : Slice(Float32)) : Nil
+
+  # dst[i] = round(a[i])
+  abstract def round(dst : Slice(Float32), a : Slice(Float32)) : Nil
+
+  # ---------------------------
   # Reductions (Float32)
   # ---------------------------
 
@@ -61,12 +99,6 @@ abstract class SIMD::Base
 
   # Writes an output mask byte per element: 0xFF if a[i] > b[i], else 0x00
   abstract def cmp_gt_mask(dst_mask : Slice(UInt8), a : Slice(Float32), b : Slice(Float32)) : Nil
-
-  # dst[i] = (mask[i] != 0) ? t[i] : f[i]
-  abstract def blend(dst : Slice(Float32), t : Slice(Float32), f : Slice(Float32), mask : Slice(UInt8)) : Nil
-
-  # Compact: output only elements where mask != 0. Returns number written.
-  abstract def compress(dst : Slice(Float32), src : Slice(Float32), mask : Slice(UInt8)) : Int32
 
   # ---------------------------
   # Convolution (Float32)
@@ -91,6 +123,19 @@ abstract class SIMD::Base
   abstract def axpby(dst : Slice(Float64), a : Slice(Float64), b : Slice(Float64), alpha : Float64, beta : Float64) : Nil
 
   # ---------------------------
+  # Additional math (Float64)
+  # ---------------------------
+
+  abstract def div(dst : Slice(Float64), a : Slice(Float64), b : Slice(Float64)) : Nil
+  abstract def sqrt(dst : Slice(Float64), a : Slice(Float64)) : Nil
+  abstract def rsqrt(dst : Slice(Float64), a : Slice(Float64)) : Nil
+  abstract def abs(dst : Slice(Float64), a : Slice(Float64)) : Nil
+  abstract def neg(dst : Slice(Float64), a : Slice(Float64)) : Nil
+  abstract def floor(dst : Slice(Float64), a : Slice(Float64)) : Nil
+  abstract def ceil(dst : Slice(Float64), a : Slice(Float64)) : Nil
+  abstract def round(dst : Slice(Float64), a : Slice(Float64)) : Nil
+
+  # ---------------------------
   # Reductions (Float64)
   # ---------------------------
 
@@ -104,8 +149,6 @@ abstract class SIMD::Base
   # ---------------------------
 
   abstract def cmp_gt_mask(dst_mask : Slice(UInt8), a : Slice(Float64), b : Slice(Float64)) : Nil
-  abstract def blend(dst : Slice(Float64), t : Slice(Float64), f : Slice(Float64), mask : Slice(UInt8)) : Nil
-  abstract def compress(dst : Slice(Float64), src : Slice(Float64), mask : Slice(UInt8)) : Int32
 
   # ---------------------------
   # Convolution (Float64)
@@ -148,7 +191,6 @@ abstract class SIMD::Base
   # ---------------------------
 
   abstract def cmp_gt_mask(dst_mask : Slice(UInt8), a : Slice(UInt64), b : Slice(UInt64)) : Nil
-  abstract def blend(dst : Slice(UInt64), t : Slice(UInt64), f : Slice(UInt64), mask : Slice(UInt8)) : Nil
 
   # ============================================================
   # INT64 OPERATIONS (forward to UInt64 where possible)
@@ -198,10 +240,6 @@ abstract class SIMD::Base
   # Compare/mask - needs signed comparison
   abstract def cmp_gt_mask(dst_mask : Slice(UInt8), a : Slice(Int64), b : Slice(Int64)) : Nil
 
-  def blend(dst : Slice(Int64), t : Slice(Int64), f : Slice(Int64), mask : Slice(UInt8)) : Nil
-    blend(uint64_view(dst), uint64_view(t), uint64_view(f), mask)
-  end
-
   # ============================================================
   # UINT32 OPERATIONS (existing, now with full set)
   # ============================================================
@@ -237,7 +275,6 @@ abstract class SIMD::Base
   # ---------------------------
 
   abstract def cmp_gt_mask(dst_mask : Slice(UInt8), a : Slice(UInt32), b : Slice(UInt32)) : Nil
-  abstract def blend(dst : Slice(UInt32), t : Slice(UInt32), f : Slice(UInt32), mask : Slice(UInt8)) : Nil
 
   # ============================================================
   # INT32 OPERATIONS (forward to UInt32 where possible)
@@ -282,10 +319,6 @@ abstract class SIMD::Base
 
   abstract def cmp_gt_mask(dst_mask : Slice(UInt8), a : Slice(Int32), b : Slice(Int32)) : Nil
 
-  def blend(dst : Slice(Int32), t : Slice(Int32), f : Slice(Int32), mask : Slice(UInt8)) : Nil
-    blend(uint32_view(dst), uint32_view(t), uint32_view(f), mask)
-  end
-
   # ============================================================
   # UINT16 OPERATIONS
   # ============================================================
@@ -305,7 +338,6 @@ abstract class SIMD::Base
   abstract def bswap(dst : Slice(UInt16), a : Slice(UInt16)) : Nil
 
   abstract def cmp_gt_mask(dst_mask : Slice(UInt8), a : Slice(UInt16), b : Slice(UInt16)) : Nil
-  abstract def blend(dst : Slice(UInt16), t : Slice(UInt16), f : Slice(UInt16), mask : Slice(UInt8)) : Nil
 
   # ============================================================
   # INT16 OPERATIONS (forward to UInt16 where possible)
@@ -349,10 +381,6 @@ abstract class SIMD::Base
   end
 
   abstract def cmp_gt_mask(dst_mask : Slice(UInt8), a : Slice(Int16), b : Slice(Int16)) : Nil
-
-  def blend(dst : Slice(Int16), t : Slice(Int16), f : Slice(Int16), mask : Slice(UInt8)) : Nil
-    blend(uint16_view(dst), uint16_view(t), uint16_view(f), mask)
-  end
 
   # ============================================================
   # UINT8 OPERATIONS
@@ -460,21 +488,64 @@ abstract class SIMD::Base
   abstract def xor_block16(dst : Slice(UInt8), src : Slice(UInt8), key16 : StaticArray(UInt8, 16)) : Nil
 
   # ============================================================
+  # ADDITIONAL OPERATIONS
+  # ============================================================
+
+  # --------------------------------
+  # Math helpers
+  # --------------------------------
+
+  abstract def abs(dst : Slice(UInt8), a : Slice(UInt8)) : Nil
+  abstract def abs(dst : Slice(Int8), a : Slice(Int8)) : Nil
+  abstract def abs(dst : Slice(UInt16), a : Slice(UInt16)) : Nil
+  abstract def abs(dst : Slice(Int16), a : Slice(Int16)) : Nil
+  abstract def abs(dst : Slice(UInt32), a : Slice(UInt32)) : Nil
+  abstract def abs(dst : Slice(Int32), a : Slice(Int32)) : Nil
+  abstract def abs(dst : Slice(UInt64), a : Slice(UInt64)) : Nil
+  abstract def abs(dst : Slice(Int64), a : Slice(Int64)) : Nil
+
+  abstract def neg(dst : Slice(Int8), a : Slice(Int8)) : Nil
+  abstract def neg(dst : Slice(Int16), a : Slice(Int16)) : Nil
+  abstract def neg(dst : Slice(Int32), a : Slice(Int32)) : Nil
+  abstract def neg(dst : Slice(Int64), a : Slice(Int64)) : Nil
+
+  # --------------------------------
+  # Comparisons / masks
+  # --------------------------------
+
+  abstract def cmp_eq(dst_mask : Slice(UInt8), a : Slice(T), b : Slice(T)) : Nil forall T
+  abstract def cmp_ne(dst_mask : Slice(UInt8), a : Slice(T), b : Slice(T)) : Nil forall T
+  abstract def cmp_lt(dst_mask : Slice(UInt8), a : Slice(T), b : Slice(T)) : Nil forall T
+  abstract def cmp_le(dst_mask : Slice(UInt8), a : Slice(T), b : Slice(T)) : Nil forall T
+  abstract def cmp_ge(dst_mask : Slice(UInt8), a : Slice(T), b : Slice(T)) : Nil forall T
+
+  # --------------------------------
+  # Element-wise min/max
+  # --------------------------------
+
+  abstract def min(dst : Slice(T), a : Slice(T), b : Slice(T)) : Nil forall T
+  abstract def max(dst : Slice(T), a : Slice(T), b : Slice(T)) : Nil forall T
+
+  # ============================================================
   # PRIVATE HELPERS FOR SLICE VIEWS
   # ============================================================
 
+  @[AlwaysInline]
   private def uint64_view(slice : Slice(Int64)) : Slice(UInt64)
     Slice(UInt64).new(slice.to_unsafe.as(Pointer(UInt64)), slice.size)
   end
 
+  @[AlwaysInline]
   private def uint32_view(slice : Slice(Int32)) : Slice(UInt32)
     Slice(UInt32).new(slice.to_unsafe.as(Pointer(UInt32)), slice.size)
   end
 
+  @[AlwaysInline]
   private def uint16_view(slice : Slice(Int16)) : Slice(UInt16)
     Slice(UInt16).new(slice.to_unsafe.as(Pointer(UInt16)), slice.size)
   end
 
+  @[AlwaysInline]
   private def uint8_view(slice : Slice(Int8)) : Slice(UInt8)
     Slice(UInt8).new(slice.to_unsafe.as(Pointer(UInt8)), slice.size)
   end

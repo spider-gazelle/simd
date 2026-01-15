@@ -172,4 +172,56 @@ describe "SIMD Int8 operations" do
       end
     end
   end
+
+  describe "additional operations" do
+    it "abs/neg are wrapping for min value" do
+      ([SIMD.scalar] + check_implementations).each do |simd|
+        a = Slice[-128_i8, -1_i8, 0_i8, 5_i8]
+        dst = Slice(Int8).new(a.size)
+
+        simd.abs(dst, a)
+        dst.should eq Slice[-128_i8, 1_i8, 0_i8, 5_i8]
+
+        simd.neg(dst, a)
+        dst.should eq Slice[-128_i8, 1_i8, 0_i8, -5_i8]
+      end
+    end
+
+    it "supports element-wise min/max and extra reductions" do
+      ([SIMD.scalar] + check_implementations).each do |simd|
+        a = Slice[1_i8, -2_i8, 3_i8, -4_i8]
+        b = Slice[0_i8, -3_i8, 4_i8, -1_i8]
+        dst = Slice(Int8).new(a.size)
+
+        simd.min(dst, a, b)
+        dst.should eq Slice[0_i8, -3_i8, 3_i8, -4_i8]
+
+        simd.max(dst, a, b)
+        dst.should eq Slice[1_i8, -2_i8, 4_i8, -1_i8]
+      end
+    end
+
+    it "supports additional comparisons" do
+      ([SIMD.scalar] + check_implementations).each do |simd|
+        a = Slice[-1_i8, 5_i8, 0_i8, -10_i8]
+        b = Slice[-1_i8, 3_i8, 1_i8, 5_i8]
+        mask = Slice(UInt8).new(a.size)
+
+        simd.cmp_eq(mask, a, b)
+        mask.should eq Slice[0xFF_u8, 0x00_u8, 0x00_u8, 0x00_u8]
+
+        simd.cmp_ne(mask, a, b)
+        mask.should eq Slice[0x00_u8, 0xFF_u8, 0xFF_u8, 0xFF_u8]
+
+        simd.cmp_lt(mask, a, b)
+        mask.should eq Slice[0x00_u8, 0x00_u8, 0xFF_u8, 0xFF_u8]
+
+        simd.cmp_le(mask, a, b)
+        mask.should eq Slice[0xFF_u8, 0x00_u8, 0xFF_u8, 0xFF_u8]
+
+        simd.cmp_ge(mask, a, b)
+        mask.should eq Slice[0xFF_u8, 0xFF_u8, 0x00_u8, 0x00_u8]
+      end
+    end
+  end
 end

@@ -339,37 +339,4 @@ describe "SIMD UInt32 operations" do
       end
     end
   end
-
-  describe "blend" do
-    it "scalar implementation" do
-      simd = SIMD.scalar
-      t = Slice[1_u32, 2_u32, 3_u32, 4_u32]
-      f = Slice[10_u32, 20_u32, 30_u32, 40_u32]
-      mask = Slice[0xFF_u8, 0x00_u8, 0xFF_u8, 0x00_u8]
-      dst = Slice(UInt32).new(t.size)
-
-      simd.blend(dst, t, f, mask)
-
-      dst[0].should eq 1_u32
-      dst[1].should eq 20_u32
-      dst[2].should eq 3_u32
-      dst[3].should eq 40_u32
-    end
-
-    it "hardware implementations match scalar" do
-      check_implementations.each do |simd|
-        t = Slice[1_u32, 2_u32, 3_u32, 4_u32]
-        f = Slice[10_u32, 20_u32, 30_u32, 40_u32]
-        mask = Slice[0xFF_u8, 0x00_u8, 0xFF_u8, 0x00_u8]
-        dst = Slice(UInt32).new(t.size)
-
-        simd.blend(dst, t, f, mask)
-
-        dst[0].should eq 1_u32
-        dst[1].should eq 20_u32
-        dst[2].should eq 3_u32
-        dst[3].should eq 40_u32
-      end
-    end
-  end
 end

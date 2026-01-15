@@ -3,7 +3,7 @@
 # SVE has variable vector lengths (128-2048 bits in 128-bit increments)
 # Uses z0-z31 vector registers and p0-p15 predicate registers
 # ------------------------------------------------------------
-class SIMD::SVE < SIMD::Base
+class SIMD::SVE < SIMD::NEON
   # SVE vector length is implementation-defined (128-2048 bits)
   # We query it at runtime using cntw (count words = 32-bit elements)
   # SVE vector widths for different element sizes (computed at runtime)
@@ -65,6 +65,105 @@ class SIMD::SVE < SIMD::Base
       raise ArgumentError.new("length mismatch") unless slice.as(Slice).size == n
     end
     n
+  end
+
+  # ============================================================
+  # Additional operations (non-float / generic)
+  # ============================================================
+
+  def abs(dst : Slice(UInt8), a : Slice(UInt8)) : Nil
+    Log.trace { "abs(UInt8) forwarding to scalar (faster)" }
+    SIMD::SCALAR_FALLBACK.abs(dst, a)
+  end
+
+  def abs(dst : Slice(Int8), a : Slice(Int8)) : Nil
+    Log.trace { "abs(Int8) forwarding to scalar (faster)" }
+    SIMD::SCALAR_FALLBACK.abs(dst, a)
+  end
+
+  def abs(dst : Slice(UInt16), a : Slice(UInt16)) : Nil
+    Log.trace { "abs(UInt16) forwarding to scalar (faster)" }
+    SIMD::SCALAR_FALLBACK.abs(dst, a)
+  end
+
+  def abs(dst : Slice(Int16), a : Slice(Int16)) : Nil
+    Log.trace { "abs(Int16) forwarding to scalar (faster)" }
+    SIMD::SCALAR_FALLBACK.abs(dst, a)
+  end
+
+  def abs(dst : Slice(UInt32), a : Slice(UInt32)) : Nil
+    Log.trace { "abs(UInt32) forwarding to scalar (faster)" }
+    SIMD::SCALAR_FALLBACK.abs(dst, a)
+  end
+
+  def abs(dst : Slice(Int32), a : Slice(Int32)) : Nil
+    Log.trace { "abs(Int32) forwarding to scalar (faster)" }
+    SIMD::SCALAR_FALLBACK.abs(dst, a)
+  end
+
+  def abs(dst : Slice(UInt64), a : Slice(UInt64)) : Nil
+    Log.trace { "abs(UInt64) forwarding to scalar (faster)" }
+    SIMD::SCALAR_FALLBACK.abs(dst, a)
+  end
+
+  def abs(dst : Slice(Int64), a : Slice(Int64)) : Nil
+    Log.trace { "abs(Int64) forwarding to scalar (faster)" }
+    SIMD::SCALAR_FALLBACK.abs(dst, a)
+  end
+
+  def neg(dst : Slice(Int8), a : Slice(Int8)) : Nil
+    Log.trace { "neg(Int8) forwarding to scalar (faster)" }
+    SIMD::SCALAR_FALLBACK.neg(dst, a)
+  end
+
+  def neg(dst : Slice(Int16), a : Slice(Int16)) : Nil
+    Log.trace { "neg(Int16) forwarding to scalar (faster)" }
+    SIMD::SCALAR_FALLBACK.neg(dst, a)
+  end
+
+  def neg(dst : Slice(Int32), a : Slice(Int32)) : Nil
+    Log.trace { "neg(Int32) forwarding to scalar (faster)" }
+    SIMD::SCALAR_FALLBACK.neg(dst, a)
+  end
+
+  def neg(dst : Slice(Int64), a : Slice(Int64)) : Nil
+    Log.trace { "neg(Int64) forwarding to scalar (faster)" }
+    SIMD::SCALAR_FALLBACK.neg(dst, a)
+  end
+
+  def min(dst : Slice(T), a : Slice(T), b : Slice(T)) : Nil forall T
+    Log.trace { "min forwarding to scalar (faster)" }
+    SIMD::SCALAR_FALLBACK.min(dst, a, b)
+  end
+
+  def max(dst : Slice(T), a : Slice(T), b : Slice(T)) : Nil forall T
+    Log.trace { "max forwarding to scalar (faster)" }
+    SIMD::SCALAR_FALLBACK.max(dst, a, b)
+  end
+
+  def cmp_eq(dst_mask : Slice(UInt8), a : Slice(T), b : Slice(T)) : Nil forall T
+    Log.trace { "cmp_eq forwarding to scalar (faster)" }
+    SIMD::SCALAR_FALLBACK.cmp_eq(dst_mask, a, b)
+  end
+
+  def cmp_ne(dst_mask : Slice(UInt8), a : Slice(T), b : Slice(T)) : Nil forall T
+    Log.trace { "cmp_ne forwarding to scalar (faster)" }
+    SIMD::SCALAR_FALLBACK.cmp_ne(dst_mask, a, b)
+  end
+
+  def cmp_lt(dst_mask : Slice(UInt8), a : Slice(T), b : Slice(T)) : Nil forall T
+    Log.trace { "cmp_lt forwarding to scalar (faster)" }
+    SIMD::SCALAR_FALLBACK.cmp_lt(dst_mask, a, b)
+  end
+
+  def cmp_le(dst_mask : Slice(UInt8), a : Slice(T), b : Slice(T)) : Nil forall T
+    Log.trace { "cmp_le forwarding to scalar (faster)" }
+    SIMD::SCALAR_FALLBACK.cmp_le(dst_mask, a, b)
+  end
+
+  def cmp_ge(dst_mask : Slice(UInt8), a : Slice(T), b : Slice(T)) : Nil forall T
+    Log.trace { "cmp_ge forwarding to scalar (faster)" }
+    SIMD::SCALAR_FALLBACK.cmp_ge(dst_mask, a, b)
   end
 
   def add(dst : Slice(Float32), a : Slice(Float32), b : Slice(Float32)) : Nil
@@ -276,6 +375,471 @@ class SIMD::SVE < SIMD::Base
 
     while i < n
       dst[i] = alpha * a[i] + beta * b[i]
+      i += 1
+    end
+  end
+
+  def div(dst : Slice(Float32), a : Slice(Float32), b : Slice(Float32)) : Nil
+    n = check_len(dst, a, b)
+    dst_ptr = dst.to_unsafe
+    a_ptr = a.to_unsafe
+    b_ptr = b.to_unsafe
+    vw = @vector_width
+
+    i = 0
+    while i + vw <= n
+      asm(
+        "ptrue p0.s
+         ld1w {z0.s}, p0/z, [$1]
+         ld1w {z1.s}, p0/z, [$2]
+         fdiv z0.s, p0/m, z0.s, z1.s
+         st1w {z0.s}, p0, [$0]"
+              :: "r"(dst_ptr + i), "r"(a_ptr + i), "r"(b_ptr + i)
+              : "z0", "z1", "p0", "memory"
+              : "volatile"
+      )
+      i += vw
+    end
+
+    while i < n
+      dst[i] = a[i] / b[i]
+      i += 1
+    end
+  end
+
+  def sqrt(dst : Slice(Float32), a : Slice(Float32)) : Nil
+    n = check_len(dst, a)
+    dst_ptr = dst.to_unsafe
+    a_ptr = a.to_unsafe
+    vw = @vector_width
+
+    i = 0
+    while i + vw <= n
+      asm(
+        "ptrue p0.s
+         ld1w {z0.s}, p0/z, [$1]
+         fsqrt z0.s, p0/m, z0.s
+         st1w {z0.s}, p0, [$0]"
+              :: "r"(dst_ptr + i), "r"(a_ptr + i)
+              : "z0", "p0", "memory"
+              : "volatile"
+      )
+      i += vw
+    end
+
+    while i < n
+      dst[i] = Math.sqrt(a[i])
+      i += 1
+    end
+  end
+
+  def rsqrt(dst : Slice(Float32), a : Slice(Float32)) : Nil
+    n = check_len(dst, a)
+    dst_ptr = dst.to_unsafe
+    a_ptr = a.to_unsafe
+    vw = @vector_width
+
+    one = 1.0_f32
+
+    i = 0
+    while i + vw <= n
+      asm(
+        "ptrue p0.s
+         ld1w {z0.s}, p0/z, [$1]
+         fsqrt z0.s, p0/m, z0.s
+         fdup z1, $2
+         fdiv z0.s, p0/m, z1.s, z0.s
+         st1w {z0.s}, p0, [$0]"
+              :: "r"(dst_ptr + i), "r"(a_ptr + i), "w"(one)
+              : "z0", "z1", "p0", "memory"
+              : "volatile"
+      )
+      i += vw
+    end
+
+    while i < n
+      dst[i] = 1.0_f32 / Math.sqrt(a[i])
+      i += 1
+    end
+  end
+
+  def abs(dst : Slice(Float32), a : Slice(Float32)) : Nil
+    n = check_len(dst, a)
+    dst_ptr = dst.to_unsafe
+    a_ptr = a.to_unsafe
+    vw = @vector_width
+
+    i = 0
+    while i + vw <= n
+      asm(
+        "ptrue p0.s
+         ld1w {z0.s}, p0/z, [$1]
+         fabs z0.s, p0/m, z0.s
+         st1w {z0.s}, p0, [$0]"
+              :: "r"(dst_ptr + i), "r"(a_ptr + i)
+              : "z0", "p0", "memory"
+              : "volatile"
+      )
+      i += vw
+    end
+
+    while i < n
+      u = a[i].unsafe_as(UInt32)
+      dst[i] = (u & 0x7fff_ffff_u32).unsafe_as(Float32)
+      i += 1
+    end
+  end
+
+  def neg(dst : Slice(Float32), a : Slice(Float32)) : Nil
+    n = check_len(dst, a)
+    dst_ptr = dst.to_unsafe
+    a_ptr = a.to_unsafe
+    vw = @vector_width
+
+    i = 0
+    while i + vw <= n
+      asm(
+        "ptrue p0.s
+         ld1w {z0.s}, p0/z, [$1]
+         fneg z0.s, p0/m, z0.s
+         st1w {z0.s}, p0, [$0]"
+              :: "r"(dst_ptr + i), "r"(a_ptr + i)
+              : "z0", "p0", "memory"
+              : "volatile"
+      )
+      i += vw
+    end
+
+    while i < n
+      dst[i] = -a[i]
+      i += 1
+    end
+  end
+
+  def floor(dst : Slice(Float32), a : Slice(Float32)) : Nil
+    n = check_len(dst, a)
+    dst_ptr = dst.to_unsafe
+    a_ptr = a.to_unsafe
+    vw = @vector_width
+
+    i = 0
+    while i + vw <= n
+      asm(
+        "ptrue p0.s
+         ld1w {z0.s}, p0/z, [$1]
+         frintm z0.s, p0/m, z0.s
+         st1w {z0.s}, p0, [$0]"
+              :: "r"(dst_ptr + i), "r"(a_ptr + i)
+              : "z0", "p0", "memory"
+              : "volatile"
+      )
+      i += vw
+    end
+
+    while i < n
+      dst[i] = a[i].floor
+      i += 1
+    end
+  end
+
+  def ceil(dst : Slice(Float32), a : Slice(Float32)) : Nil
+    n = check_len(dst, a)
+    dst_ptr = dst.to_unsafe
+    a_ptr = a.to_unsafe
+    vw = @vector_width
+
+    i = 0
+    while i + vw <= n
+      asm(
+        "ptrue p0.s
+         ld1w {z0.s}, p0/z, [$1]
+         frintp z0.s, p0/m, z0.s
+         st1w {z0.s}, p0, [$0]"
+              :: "r"(dst_ptr + i), "r"(a_ptr + i)
+              : "z0", "p0", "memory"
+              : "volatile"
+      )
+      i += vw
+    end
+
+    while i < n
+      dst[i] = a[i].ceil
+      i += 1
+    end
+  end
+
+  def round(dst : Slice(Float32), a : Slice(Float32)) : Nil
+    n = check_len(dst, a)
+    dst_ptr = dst.to_unsafe
+    a_ptr = a.to_unsafe
+    vw = @vector_width
+
+    i = 0
+    while i + vw <= n
+      asm(
+        "ptrue p0.s
+         ld1w {z0.s}, p0/z, [$1]
+         frintn z0.s, p0/m, z0.s
+         st1w {z0.s}, p0, [$0]"
+              :: "r"(dst_ptr + i), "r"(a_ptr + i)
+              : "z0", "p0", "memory"
+              : "volatile"
+      )
+      i += vw
+    end
+
+    while i < n
+      dst[i] = a[i].round
+      i += 1
+    end
+  end
+
+  def min(dst : Slice(Float32), a : Slice(Float32), b : Slice(Float32)) : Nil
+    n = check_len(dst, a, b)
+    dst_ptr = dst.to_unsafe
+    a_ptr = a.to_unsafe
+    b_ptr = b.to_unsafe
+    vw = @vector_width
+
+    i = 0
+    while i + vw <= n
+      asm(
+        "ptrue p0.s
+         ld1w {z0.s}, p0/z, [$1]
+         ld1w {z1.s}, p0/z, [$2]
+         fmin z0.s, p0/m, z0.s, z1.s
+         st1w {z0.s}, p0, [$0]"
+              :: "r"(dst_ptr + i), "r"(a_ptr + i), "r"(b_ptr + i)
+              : "z0", "z1", "p0", "memory"
+              : "volatile"
+      )
+      i += vw
+    end
+
+    while i < n
+      av = a[i]
+      bv = b[i]
+      dst[i] = av < bv ? av : bv
+      i += 1
+    end
+  end
+
+  def max(dst : Slice(Float32), a : Slice(Float32), b : Slice(Float32)) : Nil
+    n = check_len(dst, a, b)
+    dst_ptr = dst.to_unsafe
+    a_ptr = a.to_unsafe
+    b_ptr = b.to_unsafe
+    vw = @vector_width
+
+    i = 0
+    while i + vw <= n
+      asm(
+        "ptrue p0.s
+         ld1w {z0.s}, p0/z, [$1]
+         ld1w {z1.s}, p0/z, [$2]
+         fmax z0.s, p0/m, z0.s, z1.s
+         st1w {z0.s}, p0, [$0]"
+              :: "r"(dst_ptr + i), "r"(a_ptr + i), "r"(b_ptr + i)
+              : "z0", "z1", "p0", "memory"
+              : "volatile"
+      )
+      i += vw
+    end
+
+    while i < n
+      av = a[i]
+      bv = b[i]
+      dst[i] = av > bv ? av : bv
+      i += 1
+    end
+  end
+
+  def cmp_eq(dst_mask : Slice(UInt8), a : Slice(Float32), b : Slice(Float32)) : Nil
+    n = check_len(dst_mask, a, b)
+    a_ptr = a.to_unsafe
+    b_ptr = b.to_unsafe
+    vw = @vector_width
+
+    i = 0
+    while i + vw <= n
+      mask_arr = StaticArray(UInt32, 64).new(0_u32)
+      mask_ptr = mask_arr.to_unsafe
+
+      asm(
+        "ptrue p0.s
+         ld1w {z0.s}, p0/z, [$1]
+         ld1w {z1.s}, p0/z, [$2]
+         fcmeq p1.s, p0/z, z0.s, z1.s
+         mov z2.s, p0/z, #0
+         mov z2.s, p1/m, #-1
+         st1w {z2.s}, p0, [$0]"
+              :: "r"(mask_ptr), "r"(a_ptr + i), "r"(b_ptr + i)
+              : "z0", "z1", "z2", "p0", "p1", "memory"
+              : "volatile"
+      )
+
+      j = 0
+      while j < vw
+        dst_mask[i + j] = mask_arr[j] != 0 ? 0xFF_u8 : 0x00_u8
+        j += 1
+      end
+      i += vw
+    end
+
+    while i < n
+      dst_mask[i] = a[i] == b[i] ? 0xFF_u8 : 0x00_u8
+      i += 1
+    end
+  end
+
+  def cmp_ne(dst_mask : Slice(UInt8), a : Slice(Float32), b : Slice(Float32)) : Nil
+    n = check_len(dst_mask, a, b)
+    a_ptr = a.to_unsafe
+    b_ptr = b.to_unsafe
+    vw = @vector_width
+
+    i = 0
+    while i + vw <= n
+      mask_arr = StaticArray(UInt32, 64).new(0_u32)
+      mask_ptr = mask_arr.to_unsafe
+
+      asm(
+        "ptrue p0.s
+         ld1w {z0.s}, p0/z, [$1]
+         ld1w {z1.s}, p0/z, [$2]
+         fcmne p1.s, p0/z, z0.s, z1.s
+         mov z2.s, p0/z, #0
+         mov z2.s, p1/m, #-1
+         st1w {z2.s}, p0, [$0]"
+              :: "r"(mask_ptr), "r"(a_ptr + i), "r"(b_ptr + i)
+              : "z0", "z1", "z2", "p0", "p1", "memory"
+              : "volatile"
+      )
+
+      j = 0
+      while j < vw
+        dst_mask[i + j] = mask_arr[j] != 0 ? 0xFF_u8 : 0x00_u8
+        j += 1
+      end
+      i += vw
+    end
+
+    while i < n
+      dst_mask[i] = a[i] != b[i] ? 0xFF_u8 : 0x00_u8
+      i += 1
+    end
+  end
+
+  def cmp_lt(dst_mask : Slice(UInt8), a : Slice(Float32), b : Slice(Float32)) : Nil
+    n = check_len(dst_mask, a, b)
+    a_ptr = a.to_unsafe
+    b_ptr = b.to_unsafe
+    vw = @vector_width
+
+    i = 0
+    while i + vw <= n
+      mask_arr = StaticArray(UInt32, 64).new(0_u32)
+      mask_ptr = mask_arr.to_unsafe
+
+      asm(
+        "ptrue p0.s
+         ld1w {z0.s}, p0/z, [$1]
+         ld1w {z1.s}, p0/z, [$2]
+         fcmlt p1.s, p0/z, z0.s, z1.s
+         mov z2.s, p0/z, #0
+         mov z2.s, p1/m, #-1
+         st1w {z2.s}, p0, [$0]"
+              :: "r"(mask_ptr), "r"(a_ptr + i), "r"(b_ptr + i)
+              : "z0", "z1", "z2", "p0", "p1", "memory"
+              : "volatile"
+      )
+
+      j = 0
+      while j < vw
+        dst_mask[i + j] = mask_arr[j] != 0 ? 0xFF_u8 : 0x00_u8
+        j += 1
+      end
+      i += vw
+    end
+
+    while i < n
+      dst_mask[i] = a[i] < b[i] ? 0xFF_u8 : 0x00_u8
+      i += 1
+    end
+  end
+
+  def cmp_le(dst_mask : Slice(UInt8), a : Slice(Float32), b : Slice(Float32)) : Nil
+    n = check_len(dst_mask, a, b)
+    a_ptr = a.to_unsafe
+    b_ptr = b.to_unsafe
+    vw = @vector_width
+
+    i = 0
+    while i + vw <= n
+      mask_arr = StaticArray(UInt32, 64).new(0_u32)
+      mask_ptr = mask_arr.to_unsafe
+
+      asm(
+        "ptrue p0.s
+         ld1w {z0.s}, p0/z, [$1]
+         ld1w {z1.s}, p0/z, [$2]
+         fcmle p1.s, p0/z, z0.s, z1.s
+         mov z2.s, p0/z, #0
+         mov z2.s, p1/m, #-1
+         st1w {z2.s}, p0, [$0]"
+              :: "r"(mask_ptr), "r"(a_ptr + i), "r"(b_ptr + i)
+              : "z0", "z1", "z2", "p0", "p1", "memory"
+              : "volatile"
+      )
+
+      j = 0
+      while j < vw
+        dst_mask[i + j] = mask_arr[j] != 0 ? 0xFF_u8 : 0x00_u8
+        j += 1
+      end
+      i += vw
+    end
+
+    while i < n
+      dst_mask[i] = a[i] <= b[i] ? 0xFF_u8 : 0x00_u8
+      i += 1
+    end
+  end
+
+  def cmp_ge(dst_mask : Slice(UInt8), a : Slice(Float32), b : Slice(Float32)) : Nil
+    n = check_len(dst_mask, a, b)
+    a_ptr = a.to_unsafe
+    b_ptr = b.to_unsafe
+    vw = @vector_width
+
+    i = 0
+    while i + vw <= n
+      mask_arr = StaticArray(UInt32, 64).new(0_u32)
+      mask_ptr = mask_arr.to_unsafe
+
+      asm(
+        "ptrue p0.s
+         ld1w {z0.s}, p0/z, [$1]
+         ld1w {z1.s}, p0/z, [$2]
+         fcmge p1.s, p0/z, z0.s, z1.s
+         mov z2.s, p0/z, #0
+         mov z2.s, p1/m, #-1
+         st1w {z2.s}, p0, [$0]"
+              :: "r"(mask_ptr), "r"(a_ptr + i), "r"(b_ptr + i)
+              : "z0", "z1", "z2", "p0", "p1", "memory"
+              : "volatile"
+      )
+
+      j = 0
+      while j < vw
+        dst_mask[i + j] = mask_arr[j] != 0 ? 0xFF_u8 : 0x00_u8
+        j += 1
+      end
+      i += vw
+    end
+
+    while i < n
+      dst_mask[i] = a[i] >= b[i] ? 0xFF_u8 : 0x00_u8
       i += 1
     end
   end
@@ -670,6 +1234,470 @@ class SIMD::SVE < SIMD::Base
     end
   end
 
+  def div(dst : Slice(Float64), a : Slice(Float64), b : Slice(Float64)) : Nil
+    n = check_len(dst, a, b)
+    dst_ptr = dst.to_unsafe
+    a_ptr = a.to_unsafe
+    b_ptr = b.to_unsafe
+    vw = @vector_width_64
+
+    i = 0
+    while i + vw <= n
+      asm(
+        "ptrue p0.d
+         ld1d {z0.d}, p0/z, [$1]
+         ld1d {z1.d}, p0/z, [$2]
+         fdiv z0.d, p0/m, z0.d, z1.d
+         st1d {z0.d}, p0, [$0]"
+              :: "r"(dst_ptr + i), "r"(a_ptr + i), "r"(b_ptr + i)
+              : "z0", "z1", "p0", "memory"
+              : "volatile"
+      )
+      i += vw
+    end
+
+    while i < n
+      dst[i] = a[i] / b[i]
+      i += 1
+    end
+  end
+
+  def sqrt(dst : Slice(Float64), a : Slice(Float64)) : Nil
+    n = check_len(dst, a)
+    dst_ptr = dst.to_unsafe
+    a_ptr = a.to_unsafe
+    vw = @vector_width_64
+
+    i = 0
+    while i + vw <= n
+      asm(
+        "ptrue p0.d
+         ld1d {z0.d}, p0/z, [$1]
+         fsqrt z0.d, p0/m, z0.d
+         st1d {z0.d}, p0, [$0]"
+              :: "r"(dst_ptr + i), "r"(a_ptr + i)
+              : "z0", "p0", "memory"
+              : "volatile"
+      )
+      i += vw
+    end
+
+    while i < n
+      dst[i] = Math.sqrt(a[i])
+      i += 1
+    end
+  end
+
+  def rsqrt(dst : Slice(Float64), a : Slice(Float64)) : Nil
+    n = check_len(dst, a)
+    dst_ptr = dst.to_unsafe
+    a_ptr = a.to_unsafe
+    vw = @vector_width_64
+
+    one = 1.0_f64
+
+    i = 0
+    while i + vw <= n
+      asm(
+        "ptrue p0.d
+         ld1d {z0.d}, p0/z, [$1]
+         fsqrt z0.d, p0/m, z0.d
+         fdup z1, $2
+         fdiv z0.d, p0/m, z1.d, z0.d
+         st1d {z0.d}, p0, [$0]"
+              :: "r"(dst_ptr + i), "r"(a_ptr + i), "w"(one)
+              : "z0", "z1", "p0", "memory"
+              : "volatile"
+      )
+      i += vw
+    end
+
+    while i < n
+      dst[i] = 1.0_f64 / Math.sqrt(a[i])
+      i += 1
+    end
+  end
+
+  def abs(dst : Slice(Float64), a : Slice(Float64)) : Nil
+    n = check_len(dst, a)
+    dst_ptr = dst.to_unsafe
+    a_ptr = a.to_unsafe
+    vw = @vector_width_64
+
+    i = 0
+    while i + vw <= n
+      asm(
+        "ptrue p0.d
+         ld1d {z0.d}, p0/z, [$1]
+         fabs z0.d, p0/m, z0.d
+         st1d {z0.d}, p0, [$0]"
+              :: "r"(dst_ptr + i), "r"(a_ptr + i)
+              : "z0", "p0", "memory"
+              : "volatile"
+      )
+      i += vw
+    end
+
+    while i < n
+      dst[i] = a[i].abs
+      i += 1
+    end
+  end
+
+  def neg(dst : Slice(Float64), a : Slice(Float64)) : Nil
+    n = check_len(dst, a)
+    dst_ptr = dst.to_unsafe
+    a_ptr = a.to_unsafe
+    vw = @vector_width_64
+
+    i = 0
+    while i + vw <= n
+      asm(
+        "ptrue p0.d
+         ld1d {z0.d}, p0/z, [$1]
+         fneg z0.d, p0/m, z0.d
+         st1d {z0.d}, p0, [$0]"
+              :: "r"(dst_ptr + i), "r"(a_ptr + i)
+              : "z0", "p0", "memory"
+              : "volatile"
+      )
+      i += vw
+    end
+
+    while i < n
+      dst[i] = -a[i]
+      i += 1
+    end
+  end
+
+  def floor(dst : Slice(Float64), a : Slice(Float64)) : Nil
+    n = check_len(dst, a)
+    dst_ptr = dst.to_unsafe
+    a_ptr = a.to_unsafe
+    vw = @vector_width_64
+
+    i = 0
+    while i + vw <= n
+      asm(
+        "ptrue p0.d
+         ld1d {z0.d}, p0/z, [$1]
+         frintm z0.d, p0/m, z0.d
+         st1d {z0.d}, p0, [$0]"
+              :: "r"(dst_ptr + i), "r"(a_ptr + i)
+              : "z0", "p0", "memory"
+              : "volatile"
+      )
+      i += vw
+    end
+
+    while i < n
+      dst[i] = a[i].floor
+      i += 1
+    end
+  end
+
+  def ceil(dst : Slice(Float64), a : Slice(Float64)) : Nil
+    n = check_len(dst, a)
+    dst_ptr = dst.to_unsafe
+    a_ptr = a.to_unsafe
+    vw = @vector_width_64
+
+    i = 0
+    while i + vw <= n
+      asm(
+        "ptrue p0.d
+         ld1d {z0.d}, p0/z, [$1]
+         frintp z0.d, p0/m, z0.d
+         st1d {z0.d}, p0, [$0]"
+              :: "r"(dst_ptr + i), "r"(a_ptr + i)
+              : "z0", "p0", "memory"
+              : "volatile"
+      )
+      i += vw
+    end
+
+    while i < n
+      dst[i] = a[i].ceil
+      i += 1
+    end
+  end
+
+  def round(dst : Slice(Float64), a : Slice(Float64)) : Nil
+    n = check_len(dst, a)
+    dst_ptr = dst.to_unsafe
+    a_ptr = a.to_unsafe
+    vw = @vector_width_64
+
+    i = 0
+    while i + vw <= n
+      asm(
+        "ptrue p0.d
+         ld1d {z0.d}, p0/z, [$1]
+         frintn z0.d, p0/m, z0.d
+         st1d {z0.d}, p0, [$0]"
+              :: "r"(dst_ptr + i), "r"(a_ptr + i)
+              : "z0", "p0", "memory"
+              : "volatile"
+      )
+      i += vw
+    end
+
+    while i < n
+      dst[i] = a[i].round
+      i += 1
+    end
+  end
+
+  def min(dst : Slice(Float64), a : Slice(Float64), b : Slice(Float64)) : Nil
+    n = check_len(dst, a, b)
+    dst_ptr = dst.to_unsafe
+    a_ptr = a.to_unsafe
+    b_ptr = b.to_unsafe
+    vw = @vector_width_64
+
+    i = 0
+    while i + vw <= n
+      asm(
+        "ptrue p0.d
+         ld1d {z0.d}, p0/z, [$1]
+         ld1d {z1.d}, p0/z, [$2]
+         fmin z0.d, p0/m, z0.d, z1.d
+         st1d {z0.d}, p0, [$0]"
+              :: "r"(dst_ptr + i), "r"(a_ptr + i), "r"(b_ptr + i)
+              : "z0", "z1", "p0", "memory"
+              : "volatile"
+      )
+      i += vw
+    end
+
+    while i < n
+      av = a[i]
+      bv = b[i]
+      dst[i] = av < bv ? av : bv
+      i += 1
+    end
+  end
+
+  def max(dst : Slice(Float64), a : Slice(Float64), b : Slice(Float64)) : Nil
+    n = check_len(dst, a, b)
+    dst_ptr = dst.to_unsafe
+    a_ptr = a.to_unsafe
+    b_ptr = b.to_unsafe
+    vw = @vector_width_64
+
+    i = 0
+    while i + vw <= n
+      asm(
+        "ptrue p0.d
+         ld1d {z0.d}, p0/z, [$1]
+         ld1d {z1.d}, p0/z, [$2]
+         fmax z0.d, p0/m, z0.d, z1.d
+         st1d {z0.d}, p0, [$0]"
+              :: "r"(dst_ptr + i), "r"(a_ptr + i), "r"(b_ptr + i)
+              : "z0", "z1", "p0", "memory"
+              : "volatile"
+      )
+      i += vw
+    end
+
+    while i < n
+      av = a[i]
+      bv = b[i]
+      dst[i] = av > bv ? av : bv
+      i += 1
+    end
+  end
+
+  def cmp_eq(dst_mask : Slice(UInt8), a : Slice(Float64), b : Slice(Float64)) : Nil
+    n = check_len(dst_mask, a, b)
+    a_ptr = a.to_unsafe
+    b_ptr = b.to_unsafe
+    vw = @vector_width_64
+
+    i = 0
+    while i + vw <= n
+      mask_arr = StaticArray(UInt64, 32).new(0_u64)
+      mask_ptr = mask_arr.to_unsafe
+
+      asm(
+        "ptrue p0.d
+         ld1d {z0.d}, p0/z, [$1]
+         ld1d {z1.d}, p0/z, [$2]
+         fcmeq p1.d, p0/z, z0.d, z1.d
+         mov z2.d, p0/z, #0
+         mov z2.d, p1/m, #-1
+         st1d {z2.d}, p0, [$0]"
+              :: "r"(mask_ptr), "r"(a_ptr + i), "r"(b_ptr + i)
+              : "z0", "z1", "z2", "p0", "p1", "memory"
+              : "volatile"
+      )
+
+      j = 0
+      while j < vw
+        dst_mask[i + j] = mask_arr[j] != 0 ? 0xFF_u8 : 0x00_u8
+        j += 1
+      end
+      i += vw
+    end
+
+    while i < n
+      dst_mask[i] = a[i] == b[i] ? 0xFF_u8 : 0x00_u8
+      i += 1
+    end
+  end
+
+  def cmp_ne(dst_mask : Slice(UInt8), a : Slice(Float64), b : Slice(Float64)) : Nil
+    n = check_len(dst_mask, a, b)
+    a_ptr = a.to_unsafe
+    b_ptr = b.to_unsafe
+    vw = @vector_width_64
+
+    i = 0
+    while i + vw <= n
+      mask_arr = StaticArray(UInt64, 32).new(0_u64)
+      mask_ptr = mask_arr.to_unsafe
+
+      asm(
+        "ptrue p0.d
+         ld1d {z0.d}, p0/z, [$1]
+         ld1d {z1.d}, p0/z, [$2]
+         fcmne p1.d, p0/z, z0.d, z1.d
+         mov z2.d, p0/z, #0
+         mov z2.d, p1/m, #-1
+         st1d {z2.d}, p0, [$0]"
+              :: "r"(mask_ptr), "r"(a_ptr + i), "r"(b_ptr + i)
+              : "z0", "z1", "z2", "p0", "p1", "memory"
+              : "volatile"
+      )
+
+      j = 0
+      while j < vw
+        dst_mask[i + j] = mask_arr[j] != 0 ? 0xFF_u8 : 0x00_u8
+        j += 1
+      end
+      i += vw
+    end
+
+    while i < n
+      dst_mask[i] = a[i] != b[i] ? 0xFF_u8 : 0x00_u8
+      i += 1
+    end
+  end
+
+  def cmp_lt(dst_mask : Slice(UInt8), a : Slice(Float64), b : Slice(Float64)) : Nil
+    n = check_len(dst_mask, a, b)
+    a_ptr = a.to_unsafe
+    b_ptr = b.to_unsafe
+    vw = @vector_width_64
+
+    i = 0
+    while i + vw <= n
+      mask_arr = StaticArray(UInt64, 32).new(0_u64)
+      mask_ptr = mask_arr.to_unsafe
+
+      asm(
+        "ptrue p0.d
+         ld1d {z0.d}, p0/z, [$1]
+         ld1d {z1.d}, p0/z, [$2]
+         fcmlt p1.d, p0/z, z0.d, z1.d
+         mov z2.d, p0/z, #0
+         mov z2.d, p1/m, #-1
+         st1d {z2.d}, p0, [$0]"
+              :: "r"(mask_ptr), "r"(a_ptr + i), "r"(b_ptr + i)
+              : "z0", "z1", "z2", "p0", "p1", "memory"
+              : "volatile"
+      )
+
+      j = 0
+      while j < vw
+        dst_mask[i + j] = mask_arr[j] != 0 ? 0xFF_u8 : 0x00_u8
+        j += 1
+      end
+      i += vw
+    end
+
+    while i < n
+      dst_mask[i] = a[i] < b[i] ? 0xFF_u8 : 0x00_u8
+      i += 1
+    end
+  end
+
+  def cmp_le(dst_mask : Slice(UInt8), a : Slice(Float64), b : Slice(Float64)) : Nil
+    n = check_len(dst_mask, a, b)
+    a_ptr = a.to_unsafe
+    b_ptr = b.to_unsafe
+    vw = @vector_width_64
+
+    i = 0
+    while i + vw <= n
+      mask_arr = StaticArray(UInt64, 32).new(0_u64)
+      mask_ptr = mask_arr.to_unsafe
+
+      asm(
+        "ptrue p0.d
+         ld1d {z0.d}, p0/z, [$1]
+         ld1d {z1.d}, p0/z, [$2]
+         fcmle p1.d, p0/z, z0.d, z1.d
+         mov z2.d, p0/z, #0
+         mov z2.d, p1/m, #-1
+         st1d {z2.d}, p0, [$0]"
+              :: "r"(mask_ptr), "r"(a_ptr + i), "r"(b_ptr + i)
+              : "z0", "z1", "z2", "p0", "p1", "memory"
+              : "volatile"
+      )
+
+      j = 0
+      while j < vw
+        dst_mask[i + j] = mask_arr[j] != 0 ? 0xFF_u8 : 0x00_u8
+        j += 1
+      end
+      i += vw
+    end
+
+    while i < n
+      dst_mask[i] = a[i] <= b[i] ? 0xFF_u8 : 0x00_u8
+      i += 1
+    end
+  end
+
+  def cmp_ge(dst_mask : Slice(UInt8), a : Slice(Float64), b : Slice(Float64)) : Nil
+    n = check_len(dst_mask, a, b)
+    a_ptr = a.to_unsafe
+    b_ptr = b.to_unsafe
+    vw = @vector_width_64
+
+    i = 0
+    while i + vw <= n
+      mask_arr = StaticArray(UInt64, 32).new(0_u64)
+      mask_ptr = mask_arr.to_unsafe
+
+      asm(
+        "ptrue p0.d
+         ld1d {z0.d}, p0/z, [$1]
+         ld1d {z1.d}, p0/z, [$2]
+         fcmge p1.d, p0/z, z0.d, z1.d
+         mov z2.d, p0/z, #0
+         mov z2.d, p1/m, #-1
+         st1d {z2.d}, p0, [$0]"
+              :: "r"(mask_ptr), "r"(a_ptr + i), "r"(b_ptr + i)
+              : "z0", "z1", "z2", "p0", "p1", "memory"
+              : "volatile"
+      )
+
+      j = 0
+      while j < vw
+        dst_mask[i + j] = mask_arr[j] != 0 ? 0xFF_u8 : 0x00_u8
+        j += 1
+      end
+      i += vw
+    end
+
+    while i < n
+      dst_mask[i] = a[i] >= b[i] ? 0xFF_u8 : 0x00_u8
+      i += 1
+    end
+  end
+
   def sum(a : Slice(Float64)) : Float64
     n = a.size
     a_ptr = a.to_unsafe
@@ -882,31 +1910,6 @@ class SIMD::SVE < SIMD::Base
     end
   end
 
-  def blend(dst : Slice(Float64), t : Slice(Float64), f : Slice(Float64), mask : Slice(UInt8)) : Nil
-    n = check_len(dst, t, f, mask)
-    i = 0
-    while i < n
-      dst[i] = mask[i] == 0 ? f[i] : t[i]
-      i += 1
-    end
-  end
-
-  def compress(dst : Slice(Float64), src : Slice(Float64), mask : Slice(UInt8)) : Int32
-    raise ArgumentError.new("length mismatch") unless src.size == mask.size
-    outp = 0
-    i = 0
-    n = src.size
-    while i < n
-      if mask[i] != 0
-        raise ArgumentError.new("dst too small") if outp >= dst.size
-        dst[outp] = src[i]
-        outp += 1
-      end
-      i += 1
-    end
-    outp
-  end
-
   # ============================================================
   # UInt64 operations
   # ============================================================
@@ -993,6 +1996,54 @@ class SIMD::SVE < SIMD::Base
       dst[i] = a[i] &* b[i]
       i += 1
     end
+  end
+
+  def clamp(dst : Slice(UInt64), a : Slice(UInt64), lo : UInt64, hi : UInt64) : Nil
+    n = check_len(dst, a)
+    i = 0
+    while i < n
+      v = a[i]
+      v = lo if v < lo
+      v = hi if v > hi
+      dst[i] = v
+      i += 1
+    end
+  end
+
+  def sum(a : Slice(UInt64)) : UInt64
+    raise ArgumentError.new("empty") if a.empty?
+    n = a.size
+    result = 0_u64
+    i = 0
+    while i < n
+      result &+= a[i]
+      i += 1
+    end
+    result
+  end
+
+  def max(a : Slice(UInt64)) : UInt64
+    raise ArgumentError.new("empty") if a.empty?
+    n = a.size
+    result = a[0]
+    i = 1
+    while i < n
+      result = a[i] if a[i] > result
+      i += 1
+    end
+    result
+  end
+
+  def min(a : Slice(UInt64)) : UInt64
+    raise ArgumentError.new("empty") if a.empty?
+    n = a.size
+    result = a[0]
+    i = 1
+    while i < n
+      result = a[i] if a[i] < result
+      i += 1
+    end
+    result
   end
 
   def bitwise_and(dst : Slice(UInt64), a : Slice(UInt64), b : Slice(UInt64)) : Nil
@@ -1129,6 +2180,42 @@ class SIMD::SVE < SIMD::Base
       dst_mask[i] = a[i] > b[i] ? 0xFF_u8 : 0x00_u8
       i += 1
     end
+  end
+
+  def clamp(dst : Slice(Int64), a : Slice(Int64), lo : Int64, hi : Int64) : Nil
+    n = check_len(dst, a)
+    i = 0
+    while i < n
+      v = a[i]
+      v = lo if v < lo
+      v = hi if v > hi
+      dst[i] = v
+      i += 1
+    end
+  end
+
+  def max(a : Slice(Int64)) : Int64
+    raise ArgumentError.new("empty") if a.empty?
+    n = a.size
+    result = a[0]
+    i = 1
+    while i < n
+      result = a[i] if a[i] > result
+      i += 1
+    end
+    result
+  end
+
+  def min(a : Slice(Int64)) : Int64
+    raise ArgumentError.new("empty") if a.empty?
+    n = a.size
+    result = a[0]
+    i = 1
+    while i < n
+      result = a[i] if a[i] < result
+      i += 1
+    end
+    result
   end
 
   def bitwise_and(dst : Slice(UInt32), a : Slice(UInt32), b : Slice(UInt32)) : Nil
@@ -1346,6 +2433,18 @@ class SIMD::SVE < SIMD::Base
     end
   end
 
+  def sum(a : Slice(UInt32)) : UInt32
+    raise ArgumentError.new("empty") if a.empty?
+    n = a.size
+    result = 0_u32
+    i = 0
+    while i < n
+      result &+= a[i]
+      i += 1
+    end
+    result
+  end
+
   def max(a : Slice(UInt32)) : UInt32
     raise ArgumentError.new("empty") if a.empty?
     n = a.size
@@ -1375,15 +2474,6 @@ class SIMD::SVE < SIMD::Base
     i = 0
     while i < n
       dst_mask[i] = a[i] > b[i] ? 0xFF_u8 : 0x00_u8
-      i += 1
-    end
-  end
-
-  def blend(dst : Slice(UInt32), t : Slice(UInt32), f : Slice(UInt32), mask : Slice(UInt8)) : Nil
-    n = check_len(dst, t, f, mask)
-    i = 0
-    while i < n
-      dst[i] = mask[i] == 0 ? f[i] : t[i]
       i += 1
     end
   end
@@ -1535,6 +2625,18 @@ class SIMD::SVE < SIMD::Base
       dst[i] = v
       i += 1
     end
+  end
+
+  def sum(a : Slice(UInt16)) : UInt16
+    raise ArgumentError.new("empty") if a.empty?
+    n = a.size
+    result = 0_u16
+    i = 0
+    while i < n
+      result &+= a[i]
+      i += 1
+    end
+    result
   end
 
   def max(a : Slice(UInt16)) : UInt16
@@ -1842,6 +2944,18 @@ class SIMD::SVE < SIMD::Base
     end
   end
 
+  def sum(a : Slice(UInt8)) : UInt8
+    raise ArgumentError.new("empty") if a.empty?
+    n = a.size
+    result = 0_u8
+    i = 0
+    while i < n
+      result &+= a[i]
+      i += 1
+    end
+    result
+  end
+
   def max(a : Slice(UInt8)) : UInt8
     raise ArgumentError.new("empty") if a.empty?
     n = a.size
@@ -2093,32 +3207,6 @@ class SIMD::SVE < SIMD::Base
     end
   end
 
-  def blend(dst : Slice(Float32), t : Slice(Float32), f : Slice(Float32), mask : Slice(UInt8)) : Nil
-    n = check_len(dst, t, f, mask)
-    i = 0
-    while i < n
-      dst[i] = mask[i] == 0 ? f[i] : t[i]
-      i += 1
-    end
-  end
-
-  def compress(dst : Slice(Float32), src : Slice(Float32), mask : Slice(UInt8)) : Int32
-    # SVE has compact instruction but mask handling is complex; use scalar
-    raise ArgumentError.new("length mismatch") unless src.size == mask.size
-    outp = 0
-    i = 0
-    n = src.size
-    while i < n
-      if mask[i] != 0
-        raise ArgumentError.new("dst too small") if outp >= dst.size
-        dst[outp] = src[i]
-        outp += 1
-      end
-      i += 1
-    end
-    outp
-  end
-
   def copy(dst : Slice(UInt8), src : Slice(UInt8)) : Nil
     n = check_len(dst, src)
     dst_ptr = dst.to_unsafe
@@ -2334,6 +3422,14 @@ class SIMD::SVE < SIMD::Base
     raise ArgumentError.new("src too small") if src.size < dst.size + taps - 1
 
     # Fall back to scalar for simplicity with FIR
+    SIMD::SCALAR_FALLBACK.fir(dst, src, coeff)
+  end
+
+  def fir(dst : Slice(Float64), src : Slice(Float64), coeff : Slice(Float64)) : Nil
+    taps = coeff.size
+    raise ArgumentError.new("coeff empty") if taps == 0
+    raise ArgumentError.new("src too small") if src.size < dst.size + taps - 1
+
     SIMD::SCALAR_FALLBACK.fir(dst, src, coeff)
   end
 

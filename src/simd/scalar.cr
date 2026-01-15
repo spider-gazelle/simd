@@ -71,6 +71,80 @@ class SIMD::Scalar < SIMD::Base
     end
   end
 
+  def div(dst : Slice(Float32), a : Slice(Float32), b : Slice(Float32)) : Nil
+    n = check_len(dst, a, b)
+    i = 0
+    while i < n
+      dst[i] = a[i] / b[i]
+      i += 1
+    end
+  end
+
+  def sqrt(dst : Slice(Float32), a : Slice(Float32)) : Nil
+    n = check_len(dst, a)
+    i = 0
+    while i < n
+      dst[i] = Math.sqrt(a[i])
+      i += 1
+    end
+  end
+
+  def rsqrt(dst : Slice(Float32), a : Slice(Float32)) : Nil
+    n = check_len(dst, a)
+    i = 0
+    while i < n
+      dst[i] = 1.0_f32 / Math.sqrt(a[i])
+      i += 1
+    end
+  end
+
+  def abs(dst : Slice(Float32), a : Slice(Float32)) : Nil
+    n = check_len(dst, a)
+    i = 0
+    while i < n
+      # Float32#abs returns Float64; preserve Float32 and clear sign bit (incl. -0.0).
+      u = a[i].unsafe_as(UInt32)
+      dst[i] = (u & 0x7fff_ffff_u32).unsafe_as(Float32)
+      i += 1
+    end
+  end
+
+  def neg(dst : Slice(Float32), a : Slice(Float32)) : Nil
+    n = check_len(dst, a)
+    i = 0
+    while i < n
+      dst[i] = -a[i]
+      i += 1
+    end
+  end
+
+  def floor(dst : Slice(Float32), a : Slice(Float32)) : Nil
+    n = check_len(dst, a)
+    i = 0
+    while i < n
+      dst[i] = a[i].floor
+      i += 1
+    end
+  end
+
+  def ceil(dst : Slice(Float32), a : Slice(Float32)) : Nil
+    n = check_len(dst, a)
+    i = 0
+    while i < n
+      dst[i] = a[i].ceil
+      i += 1
+    end
+  end
+
+  def round(dst : Slice(Float32), a : Slice(Float32)) : Nil
+    n = check_len(dst, a)
+    i = 0
+    while i < n
+      dst[i] = a[i].round
+      i += 1
+    end
+  end
+
   def sum(a : Slice(Float32)) : Float32
     acc = 0.0_f32
     a.each { |v| acc += v }
@@ -120,31 +194,6 @@ class SIMD::Scalar < SIMD::Base
       dst_mask[i] = a[i] > b[i] ? 0xFF_u8 : 0x00_u8
       i += 1
     end
-  end
-
-  def blend(dst : Slice(Float32), t : Slice(Float32), f : Slice(Float32), mask : Slice(UInt8)) : Nil
-    n = check_len(dst, t, f, mask)
-    i = 0
-    while i < n
-      dst[i] = mask[i] == 0 ? f[i] : t[i]
-      i += 1
-    end
-  end
-
-  def compress(dst : Slice(Float32), src : Slice(Float32), mask : Slice(UInt8)) : Int32
-    raise ArgumentError.new("length mismatch") unless src.size == mask.size
-    outp = 0
-    i = 0
-    n = src.size
-    while i < n
-      if mask[i] != 0
-        raise ArgumentError.new("dst too small") if outp >= dst.size
-        dst[outp] = src[i]
-        outp += 1
-      end
-      i += 1
-    end
-    outp
   end
 
   def fir(dst : Slice(Float32), src : Slice(Float32), coeff : Slice(Float32)) : Nil
@@ -225,6 +274,78 @@ class SIMD::Scalar < SIMD::Base
     end
   end
 
+  def div(dst : Slice(Float64), a : Slice(Float64), b : Slice(Float64)) : Nil
+    n = check_len(dst, a, b)
+    i = 0
+    while i < n
+      dst[i] = a[i] / b[i]
+      i += 1
+    end
+  end
+
+  def sqrt(dst : Slice(Float64), a : Slice(Float64)) : Nil
+    n = check_len(dst, a)
+    i = 0
+    while i < n
+      dst[i] = Math.sqrt(a[i])
+      i += 1
+    end
+  end
+
+  def rsqrt(dst : Slice(Float64), a : Slice(Float64)) : Nil
+    n = check_len(dst, a)
+    i = 0
+    while i < n
+      dst[i] = 1.0_f64 / Math.sqrt(a[i])
+      i += 1
+    end
+  end
+
+  def abs(dst : Slice(Float64), a : Slice(Float64)) : Nil
+    n = check_len(dst, a)
+    i = 0
+    while i < n
+      dst[i] = a[i].abs
+      i += 1
+    end
+  end
+
+  def neg(dst : Slice(Float64), a : Slice(Float64)) : Nil
+    n = check_len(dst, a)
+    i = 0
+    while i < n
+      dst[i] = -a[i]
+      i += 1
+    end
+  end
+
+  def floor(dst : Slice(Float64), a : Slice(Float64)) : Nil
+    n = check_len(dst, a)
+    i = 0
+    while i < n
+      dst[i] = a[i].floor
+      i += 1
+    end
+  end
+
+  def ceil(dst : Slice(Float64), a : Slice(Float64)) : Nil
+    n = check_len(dst, a)
+    i = 0
+    while i < n
+      dst[i] = a[i].ceil
+      i += 1
+    end
+  end
+
+  def round(dst : Slice(Float64), a : Slice(Float64)) : Nil
+    n = check_len(dst, a)
+    i = 0
+    while i < n
+      dst[i] = a[i].round
+      i += 1
+    end
+  end
+
   def sum(a : Slice(Float64)) : Float64
     acc = 0.0_f64
     a.each { |v| acc += v }
@@ -274,31 +395,6 @@ class SIMD::Scalar < SIMD::Base
       dst_mask[i] = a[i] > b[i] ? 0xFF_u8 : 0x00_u8
       i += 1
     end
-  end
-
-  def blend(dst : Slice(Float64), t : Slice(Float64), f : Slice(Float64), mask : Slice(UInt8)) : Nil
-    n = check_len(dst, t, f, mask)
-    i = 0
-    while i < n
-      dst[i] = mask[i] == 0 ? f[i] : t[i]
-      i += 1
-    end
-  end
-
-  def compress(dst : Slice(Float64), src : Slice(Float64), mask : Slice(UInt8)) : Int32
-    raise ArgumentError.new("length mismatch") unless src.size == mask.size
-    outp = 0
-    i = 0
-    n = src.size
-    while i < n
-      if mask[i] != 0
-        raise ArgumentError.new("dst too small") if outp >= dst.size
-        dst[outp] = src[i]
-        outp += 1
-      end
-      i += 1
-    end
-    outp
   end
 
   def fir(dst : Slice(Float64), src : Slice(Float64), coeff : Slice(Float64)) : Nil
@@ -357,6 +453,15 @@ class SIMD::Scalar < SIMD::Base
       v = lo if v < lo
       v = hi if v > hi
       dst[i] = v
+      i += 1
+    end
+  end
+
+  def abs(dst : Slice(UInt64), a : Slice(UInt64)) : Nil
+    n = check_len(dst, a)
+    i = 0
+    while i < n
+      dst[i] = a[i]
       i += 1
     end
   end
@@ -436,15 +541,6 @@ class SIMD::Scalar < SIMD::Base
     end
   end
 
-  def blend(dst : Slice(UInt64), t : Slice(UInt64), f : Slice(UInt64), mask : Slice(UInt8)) : Nil
-    n = check_len(dst, t, f, mask)
-    i = 0
-    while i < n
-      dst[i] = mask[i] == 0 ? f[i] : t[i]
-      i += 1
-    end
-  end
-
   # ============================================================
   # INT64 OPERATIONS (signed-specific)
   # ============================================================
@@ -457,6 +553,25 @@ class SIMD::Scalar < SIMD::Base
       v = lo if v < lo
       v = hi if v > hi
       dst[i] = v
+      i += 1
+    end
+  end
+
+  def abs(dst : Slice(Int64), a : Slice(Int64)) : Nil
+    n = check_len(dst, a)
+    i = 0
+    while i < n
+      v = a[i]
+      dst[i] = v < 0 ? (0_i64 &- v) : v
+      i += 1
+    end
+  end
+
+  def neg(dst : Slice(Int64), a : Slice(Int64)) : Nil
+    n = check_len(dst, a)
+    i = 0
+    while i < n
+      dst[i] = 0_i64 &- a[i]
       i += 1
     end
   end
@@ -537,6 +652,15 @@ class SIMD::Scalar < SIMD::Base
     end
   end
 
+  def abs(dst : Slice(UInt32), a : Slice(UInt32)) : Nil
+    n = check_len(dst, a)
+    i = 0
+    while i < n
+      dst[i] = a[i]
+      i += 1
+    end
+  end
+
   def sum(a : Slice(UInt32)) : UInt32
     acc = 0_u32
     a.each { |v| acc &+= v }
@@ -612,15 +736,6 @@ class SIMD::Scalar < SIMD::Base
     end
   end
 
-  def blend(dst : Slice(UInt32), t : Slice(UInt32), f : Slice(UInt32), mask : Slice(UInt8)) : Nil
-    n = check_len(dst, t, f, mask)
-    i = 0
-    while i < n
-      dst[i] = mask[i] == 0 ? f[i] : t[i]
-      i += 1
-    end
-  end
-
   # ============================================================
   # INT32 OPERATIONS (signed-specific)
   # ============================================================
@@ -633,6 +748,25 @@ class SIMD::Scalar < SIMD::Base
       v = lo if v < lo
       v = hi if v > hi
       dst[i] = v
+      i += 1
+    end
+  end
+
+  def abs(dst : Slice(Int32), a : Slice(Int32)) : Nil
+    n = check_len(dst, a)
+    i = 0
+    while i < n
+      v = a[i]
+      dst[i] = v < 0 ? (0_i32 &- v) : v
+      i += 1
+    end
+  end
+
+  def neg(dst : Slice(Int32), a : Slice(Int32)) : Nil
+    n = check_len(dst, a)
+    i = 0
+    while i < n
+      dst[i] = 0_i32 &- a[i]
       i += 1
     end
   end
@@ -713,6 +847,15 @@ class SIMD::Scalar < SIMD::Base
     end
   end
 
+  def abs(dst : Slice(UInt16), a : Slice(UInt16)) : Nil
+    n = check_len(dst, a)
+    i = 0
+    while i < n
+      dst[i] = a[i]
+      i += 1
+    end
+  end
+
   def sum(a : Slice(UInt16)) : UInt16
     acc = 0_u16
     a.each { |v| acc &+= v }
@@ -788,15 +931,6 @@ class SIMD::Scalar < SIMD::Base
     end
   end
 
-  def blend(dst : Slice(UInt16), t : Slice(UInt16), f : Slice(UInt16), mask : Slice(UInt8)) : Nil
-    n = check_len(dst, t, f, mask)
-    i = 0
-    while i < n
-      dst[i] = mask[i] == 0 ? f[i] : t[i]
-      i += 1
-    end
-  end
-
   # ============================================================
   # INT16 OPERATIONS (signed-specific)
   # ============================================================
@@ -809,6 +943,25 @@ class SIMD::Scalar < SIMD::Base
       v = lo if v < lo
       v = hi if v > hi
       dst[i] = v
+      i += 1
+    end
+  end
+
+  def abs(dst : Slice(Int16), a : Slice(Int16)) : Nil
+    n = check_len(dst, a)
+    i = 0
+    while i < n
+      v = a[i]
+      dst[i] = v < 0 ? (0_i16 &- v) : v
+      i += 1
+    end
+  end
+
+  def neg(dst : Slice(Int16), a : Slice(Int16)) : Nil
+    n = check_len(dst, a)
+    i = 0
+    while i < n
+      dst[i] = 0_i16 &- a[i]
       i += 1
     end
   end
@@ -887,6 +1040,10 @@ class SIMD::Scalar < SIMD::Base
       dst[i] = v
       i += 1
     end
+  end
+
+  def abs(dst : Slice(UInt8), a : Slice(UInt8)) : Nil
+    copy(dst, a)
   end
 
   def sum(a : Slice(UInt8)) : UInt8
@@ -984,6 +1141,25 @@ class SIMD::Scalar < SIMD::Base
       v = lo if v < lo
       v = hi if v > hi
       dst[i] = v
+      i += 1
+    end
+  end
+
+  def abs(dst : Slice(Int8), a : Slice(Int8)) : Nil
+    n = check_len(dst, a)
+    i = 0
+    while i < n
+      v = a[i]
+      dst[i] = v < 0 ? (0_i8 &- v) : v
+      i += 1
+    end
+  end
+
+  def neg(dst : Slice(Int8), a : Slice(Int8)) : Nil
+    n = check_len(dst, a)
+    i = 0
+    while i < n
+      dst[i] = 0_i8 &- a[i]
       i += 1
     end
   end
@@ -1109,6 +1285,77 @@ class SIMD::Scalar < SIMD::Base
     i = 0
     while i < src.size
       dst[i] = src[i] ^ key16[i & 15]
+      i += 1
+    end
+  end
+
+  # ============================================================
+  # ADDITIONAL OPERATIONS
+  # ============================================================
+
+  def cmp_eq(dst_mask : Slice(UInt8), a : Slice(T), b : Slice(T)) : Nil forall T
+    n = check_len(dst_mask, a, b)
+    i = 0
+    while i < n
+      dst_mask[i] = a[i] == b[i] ? 0xFF_u8 : 0x00_u8
+      i += 1
+    end
+  end
+
+  def cmp_ne(dst_mask : Slice(UInt8), a : Slice(T), b : Slice(T)) : Nil forall T
+    n = check_len(dst_mask, a, b)
+    i = 0
+    while i < n
+      dst_mask[i] = a[i] != b[i] ? 0xFF_u8 : 0x00_u8
+      i += 1
+    end
+  end
+
+  def cmp_lt(dst_mask : Slice(UInt8), a : Slice(T), b : Slice(T)) : Nil forall T
+    n = check_len(dst_mask, a, b)
+    i = 0
+    while i < n
+      dst_mask[i] = a[i] < b[i] ? 0xFF_u8 : 0x00_u8
+      i += 1
+    end
+  end
+
+  def cmp_le(dst_mask : Slice(UInt8), a : Slice(T), b : Slice(T)) : Nil forall T
+    n = check_len(dst_mask, a, b)
+    i = 0
+    while i < n
+      dst_mask[i] = a[i] <= b[i] ? 0xFF_u8 : 0x00_u8
+      i += 1
+    end
+  end
+
+  def cmp_ge(dst_mask : Slice(UInt8), a : Slice(T), b : Slice(T)) : Nil forall T
+    n = check_len(dst_mask, a, b)
+    i = 0
+    while i < n
+      dst_mask[i] = a[i] >= b[i] ? 0xFF_u8 : 0x00_u8
+      i += 1
+    end
+  end
+
+  def min(dst : Slice(T), a : Slice(T), b : Slice(T)) : Nil forall T
+    n = check_len(dst, a, b)
+    i = 0
+    while i < n
+      av = a[i]
+      bv = b[i]
+      dst[i] = av < bv ? av : bv
+      i += 1
+    end
+  end
+
+  def max(dst : Slice(T), a : Slice(T), b : Slice(T)) : Nil forall T
+    n = check_len(dst, a, b)
+    i = 0
+    while i < n
+      av = a[i]
+      bv = b[i]
+      dst[i] = av > bv ? av : bv
       i += 1
     end
   end
